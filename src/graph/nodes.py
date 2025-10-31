@@ -3,7 +3,7 @@
 import random
 import json
 import logging
-from typing import Dict, Any
+from typing import Dict, Any, List
 from functools import wraps
 from src.models import EconomicState, ShopperPoolEntry
 from src.simulation.shoppers import calculate_willing_to_pay
@@ -19,6 +19,24 @@ logger = logging.getLogger()
 # ============================================================================
 # ECONOMIC PRIORS - Injected into every LLM call for rational decision-making
 # ============================================================================
+
+def calculate_pnl(ledger: Dict[str, Any]) -> float:
+    """
+    Calculate Profit & Loss (PnL) for an agent.
+
+    PnL = Total Revenue - Total Cost Incurred
+
+    For sellers: Starts negative (initial inventory cost), becomes positive as they sell
+    For wholesaler: Starts at 0, goes negative when buying, positive when selling
+
+    Args:
+        ledger: Agent's ledger with total_revenue and total_cost_incurred
+
+    Returns:
+        Current PnL (can be negative)
+    """
+    return ledger.get("total_revenue", 0.0) - ledger.get("total_cost_incurred", 0.0)
+
 
 def get_economic_priors(state: EconomicState, agent_name: str, context: str = "general") -> str:
     """
@@ -53,7 +71,7 @@ def get_economic_priors(state: EconomicState, agent_name: str, context: str = "g
 CRITICAL TIME CONSTRAINTS:
 - Current Day: {current_day} of {total_days}
 - Days Remaining: {days_remaining} days
-- ⚠️ IMPORTANT: All unsold inventory at day {total_days} is DESTROYED (expires/perishes with ZERO value)
+- IMPORTANT: All unsold inventory at day {total_days} is DESTROYED (expires/perishes with ZERO value)
 - Your Current Inventory: {inventory} units
 
 MARKET FUNDAMENTALS:
@@ -64,8 +82,11 @@ MARKET FUNDAMENTALS:
 
     # Add negotiation-specific priors
     if context == "negotiation":
+        # Get negotiation configuration from state
+        negotiation_days = state["config"].negotiation_days
+        max_rounds = state["config"].max_negotiation_rounds
+
         # Determine which negotiation day this is
-        negotiation_days = [1, 21, 41, 61, 81]
         current_negotiation_index = None
         for i, neg_day in enumerate(negotiation_days):
             if current_day == neg_day:
@@ -78,24 +99,25 @@ MARKET FUNDAMENTALS:
 
         priors += f"""
 NEGOTIATION CONSTRAINTS:
-- Maximum Rounds Per Negotiation: 10 rounds
-- ⚠️ After 10 rounds, negotiation AUTOMATICALLY FAILS (no deal)
-- Negotiation Schedule: Days 1, 21, 41, 61, 81 (every 20 days)
+- Maximum Rounds Per Negotiation: {max_rounds} rounds
+- ⚠️ After {max_rounds} rounds, negotiation AUTOMATICALLY FAILS (no deal)
+- Negotiation Schedule: Days {', '.join(map(str, negotiation_days))}
 - Current Negotiation: Day {current_day}
 - Remaining Future Negotiations: {remaining_negotiations}
-- ⚠️ This is negotiation {current_negotiation_index + 1 if current_negotiation_index is not None else '?'} of 5 total
+- ⚠️ This is negotiation {current_negotiation_index + 1 if current_negotiation_index is not None else '?'} of {len(negotiation_days)} total
 
 STRATEGIC IMPLICATIONS:
 """
 
-        if current_negotiation_index == 4:  # Last negotiation (day 81)
+        if current_negotiation_index == len(negotiation_days) - 1:  # Last negotiation
+            days_after_last_neg = state.get("num_days", 100) - negotiation_days[-1]
             priors += f"""- 🚨 THIS IS THE LAST NEGOTIATION! No future opportunities to trade with wholesaler.
 - For SELLERS with high inventory: This is your FINAL chance to offload bulk inventory
-- Days 82-100 (19 days) are your ONLY remaining time to sell to shoppers
-- Failing this negotiation means you MUST sell all {inventory} units to shoppers in 19 days
+- Days {negotiation_days[-1] + 1}-{state.get("num_days", 100)} ({days_after_last_neg} days) are your ONLY remaining time to sell to shoppers
+- Failing this negotiation means you MUST sell all {inventory} units to shoppers in {days_after_last_neg} days
 """
-        elif current_negotiation_index == 3:  # Second-to-last (day 61)
-            priors += f"""- Only 1 more negotiation after this (day 81)
+        elif current_negotiation_index == len(negotiation_days) - 2:  # Second-to-last
+            priors += f"""- Only 1 more negotiation after this (day {negotiation_days[-1]})
 - Time is running short - inventory urgency is increasing
 - Consider your ability to sell {inventory} units in remaining days
 """
@@ -162,34 +184,54 @@ def setup_day(state: EconomicState) -> Dict[str, Any]:
     Filters shoppers whose shopping window includes today,
     calculates their current willingness to pay,
     and creates the daily pool with stable sorting.
+
+    Each demand unit gets a unique shopper_id (e.g., "S1_unit0", "S1_unit1")
+    to prevent dictionary key collisions in the matching algorithm.
     """
     current_day = state["day"]
     shopper_database = state["shopper_database"]
 
     new_daily_shopper_pool = []
+    active_shoppers_count = 0
+    total_demand_units = 0
+    wtp_values = []
 
     # Filter active shoppers and create pool entries
     for shopper in shopper_database:
         if (shopper["shopping_window_start"] <= current_day <= shopper["shopping_window_end"]
             and shopper["demand_remaining"] > 0):
 
+            active_shoppers_count += 1
             # Calculate current willingness to pay
             willing_to_pay = calculate_willing_to_pay(shopper, current_day)
+            wtp_values.append(willing_to_pay)
 
             # Add one entry per unit of demand (for matching algorithm)
-            for _ in range(shopper["demand_remaining"]):
+            # Each unit gets a UNIQUE shopper_id to prevent dictionary key collisions
+            for unit_idx in range(shopper["demand_remaining"]):
                 entry: ShopperPoolEntry = {
-                    "shopper_id": shopper["shopper_id"],
+                    "shopper_id": f"{shopper['shopper_id']}_unit{unit_idx}",  # Unique ID per unit
+                    "original_shopper_id": shopper["shopper_id"],  # Track original for aggregation
                     "willing_to_pay": willing_to_pay,
                     "demand_unit": 1
                 }
                 new_daily_shopper_pool.append(entry)
+                total_demand_units += 1
 
-    # Shuffle first, then stable sort by price (descending)
+    # Shuffle first, then stable sort by price (descending - highest WTP shops first)
     random.shuffle(new_daily_shopper_pool)
     new_daily_shopper_pool.sort(key=lambda x: x["willing_to_pay"], reverse=True)
 
-    logger.debug(f"  → Created daily shopper pool: {len(new_daily_shopper_pool)} demand units")
+    # Log summarized information instead of full pool
+    if wtp_values:
+        min_wtp = min(wtp_values)
+        max_wtp = max(wtp_values)
+        avg_wtp = sum(wtp_values) / len(wtp_values)
+        logger.debug(f"  → Created daily shopper pool: {total_demand_units} demand units from {active_shoppers_count} shoppers")
+        logger.debug(f"      Price range: ${min_wtp}-${max_wtp}, Average: ${avg_wtp:.2f}")
+    else:
+        logger.debug(f"  → Created daily shopper pool: 0 demand units (no active shoppers)")
+
     return {"daily_shopper_pool": new_daily_shopper_pool}
 
 
@@ -228,6 +270,10 @@ def wholesaler_make_offer(state: EconomicState) -> Dict[str, Any]:
     stats = tools.get_full_market_history(20)
     inv = tools.get_my_inventory()
 
+    # Calculate PnL
+    ledger = state["agent_ledgers"]["Wholesaler"]
+    pnl = calculate_pnl(ledger)
+
     # Log previous offer if exists
     if history:
         last_offer = history[-1]
@@ -239,8 +285,16 @@ def wholesaler_make_offer(state: EconomicState) -> Dict[str, Any]:
     # Build prompt
     prompt = f"""{priors}
 
+--- YOUR FINANCIAL POSITION ---
+💰 CURRENT PROFIT & LOSS (PnL): ${pnl:,.2f}
+   - Total Revenue: ${ledger['total_revenue']:,.2f}
+   - Total Costs: ${ledger['total_cost_incurred']:,.2f}
+   - Cash Available: ${ledger['cash']:,.2f}
+   - Inventory: {ledger['inventory']} units
+
+⚠️ YOUR GOAL: Maximize PnL by end of Day {state['num_days']}
+
 --- YOUR PRIVATE DATA ---
-Inventory: {inv}
 Market Analytics: {stats}
 
 --- YOUR SCRATCHPAD (Private Notes) ---
@@ -332,14 +386,29 @@ def seller_respond(state: EconomicState) -> Dict[str, Any]:
     inv = tools.get_my_inventory()
     my_stats = tools.calculate_my_sales_stats(20)
 
+    # Calculate PnL
+    ledger = state["agent_ledgers"][seller_name]
+    pnl = calculate_pnl(ledger)
+    cost_per_unit = ledger['cost_per_unit']
+
     # Get economic priors
     priors = get_economic_priors(state, seller_name, context="negotiation")
 
     # Build prompt
     prompt = f"""{priors}
 
+--- YOUR FINANCIAL POSITION ---
+💰 CURRENT PROFIT & LOSS (PnL): ${pnl:,.2f}
+   - Total Revenue: ${ledger['total_revenue']:,.2f}
+   - Total Costs (COGS): ${ledger['total_cost_incurred']:,.2f}
+   - Your Production Cost: ${cost_per_unit}/unit
+   - Cash Available: ${ledger['cash']:,.2f}
+   - Inventory: {ledger['inventory']} units
+
+⚠️ YOUR GOAL: Maximize PnL by end of Day {state['num_days']}
+⚠️ BREAK-EVEN PRICE: ${cost_per_unit}/unit (sell below this = loss!)
+
 --- YOUR PRIVATE DATA ---
-Your Inventory: {inv}
 Your Recent Sales Stats: {my_stats}
 
 --- YOUR SCRATCHPAD (Private Notes) ---
@@ -437,6 +506,11 @@ def execute_trade(state: EconomicState) -> Dict[str, Any]:
     seller_ledger = state["agent_ledgers"][seller_name]
     wholesaler_ledger = state["agent_ledgers"]["Wholesaler"]
 
+    # VALIDATION: Ensure seller has enough inventory (prevent overselling)
+    if seller_ledger["inventory"] < quantity:
+        logger.error(f"  ❌ OVERSELLING DETECTED in execute_trade: {seller_name} has {seller_ledger['inventory']} units but trying to sell {quantity}!")
+        raise ValueError(f"Overselling in wholesale trade: {seller_name} inventory {seller_ledger['inventory']} < quantity {quantity}")
+
     new_seller_ledger = {
         **seller_ledger,
         "inventory": seller_ledger["inventory"] - quantity,
@@ -490,14 +564,26 @@ def set_market_offers(state: EconomicState) -> Dict[str, Any]:
     inv = wholesaler_tools.get_my_inventory()
     scratchpad = state["agent_scratchpads"]["Wholesaler"]
 
+    # Calculate PnL
+    wholesaler_ledger = state["agent_ledgers"]["Wholesaler"]
+    wholesaler_pnl = calculate_pnl(wholesaler_ledger)
+
     # Get economic priors
     wholesaler_priors = get_economic_priors(state, "Wholesaler", context="pricing")
 
     wholesaler_prompt = f"""{wholesaler_priors}
 
+--- YOUR FINANCIAL POSITION ---
+ CURRENT PROFIT & LOSS (PnL): ${wholesaler_pnl:,.2f}
+   - Total Revenue: ${wholesaler_ledger['total_revenue']:,.2f}
+   - Total Costs: ${wholesaler_ledger['total_cost_incurred']:,.2f}
+   - Cash Available: ${wholesaler_ledger['cash']:,.2f}
+   - Inventory: {wholesaler_ledger['inventory']} units
+
+ YOUR GOAL: Maximize PnL by end of Day {state['num_days']}
+
 --- YOUR PRIVATE DATA (From Tools) ---
 - Current Day: {day} of {state['num_days']}
-- Your Current Inventory: {inv['inventory']} units
 - Market Analytics: {stats}
 - Your Estimated Profit-Maximizing Price: {rec}
 
@@ -540,14 +626,29 @@ You may want to hold back inventory for subsequent days."""
     s1_stats = seller1_tools.calculate_my_sales_stats()
     s1_scratchpad = state["agent_scratchpads"]["Seller_1"]
 
+    # Calculate PnL
+    seller1_ledger = state["agent_ledgers"]["Seller_1"]
+    seller1_pnl = calculate_pnl(seller1_ledger)
+    s1_cost = seller1_ledger['cost_per_unit']
+
     # Get economic priors
     seller1_priors = get_economic_priors(state, "Seller_1", context="pricing")
 
     seller1_prompt = f"""{seller1_priors}
 
+--- YOUR FINANCIAL POSITION ---
+ CURRENT PROFIT & LOSS (PnL): ${seller1_pnl:,.2f}
+   - Total Revenue: ${seller1_ledger['total_revenue']:,.2f}
+   - Total Costs (COGS): ${seller1_ledger['total_cost_incurred']:,.2f}
+   - Your Production Cost: ${s1_cost}/unit
+   - Cash Available: ${seller1_ledger['cash']:,.2f}
+   - Inventory: {seller1_ledger['inventory']} units
+
+ YOUR GOAL: Maximize PnL by end of Day {state['num_days']}
+ BREAK-EVEN PRICE: ${s1_cost}/unit (sell below this = loss!)
+
 --- YOUR PRIVATE DATA (From Tools) ---
 - Current Day: {day} of {state['num_days']}
-- Your Current Inventory: {s1_inv['inventory']} units
 - Your Last 20 Days Sales Stats: {s1_stats}
 
 --- YOUR SCRATCHPAD (Private Notes) ---
@@ -592,14 +693,29 @@ Remember: The Wholesaler has more market information than you. Use what you lear
     # DEBUG: Log Seller_2 inventory at the start of set_market_offers
     logger.info(f"  [INVENTORY DEBUG] Day {day} - set_market_offers - Seller_2 inventory from state: {s2_inv['inventory']} units")
 
+    # Calculate PnL
+    seller2_ledger = state["agent_ledgers"]["Seller_2"]
+    seller2_pnl = calculate_pnl(seller2_ledger)
+    s2_cost = seller2_ledger['cost_per_unit']
+
     # Get economic priors
     seller2_priors = get_economic_priors(state, "Seller_2", context="pricing")
 
     seller2_prompt = f"""{seller2_priors}
 
+--- YOUR FINANCIAL POSITION ---
+ CURRENT PROFIT & LOSS (PnL): ${seller2_pnl:,.2f}
+   - Total Revenue: ${seller2_ledger['total_revenue']:,.2f}
+   - Total Costs (COGS): ${seller2_ledger['total_cost_incurred']:,.2f}
+   - Your Production Cost: ${s2_cost}/unit
+   - Cash Available: ${seller2_ledger['cash']:,.2f}
+   - Inventory: {seller2_ledger['inventory']} units
+
+ YOUR GOAL: Maximize PnL by end of Day {state['num_days']}
+ BREAK-EVEN PRICE: ${s2_cost}/unit (sell below this = loss!)
+
 --- YOUR PRIVATE DATA (From Tools) ---
 - Current Day: {day} of {state['num_days']}
-- Your Current Inventory: {s2_inv['inventory']} units
 - Your Last 20 Days Sales Stats: {s2_stats}
 
 --- YOUR SCRATCHPAD (Private Notes) ---
@@ -643,60 +759,92 @@ Remember: The Wholesaler has more market information than you. Use what you lear
     }
 
 
+
+
+
 @log_node_execution
 def run_market_simulation(state: EconomicState) -> Dict[str, Any]:
     """
-    Run the priority match algorithm to clear the market.
-    Matches highest-paying shoppers with lowest-priced sellers.
+    Run the two-phase priority match algorithm to clear the market.
+
+    Phase 1: Priority matching - highest-paying shoppers shop first, buy from most expensive seller they can afford
+    Phase 2: Price optimization - if all demand met, re-match shoppers to cheaper alternatives to maximize consumer surplus
     """
-    shoppers = state["daily_shopper_pool"].copy()
+    shoppers = state["daily_shopper_pool"].copy()  # Already expanded with unique IDs from setup_day
     offers = state["daily_market_offers"]
     day = state["day"]
 
-    logger.debug(f"  → Running market simulation: {len(shoppers)} shoppers, {len(offers)} sellers")
+    logger.info(f"  → Running market simulation: {len(shoppers)} shopper-units (total demand), {len(offers)} sellers")
 
-    # Create flat list of seller offers sorted by price (ascending)
+    # Calculate demand statistics for logging
+    if shoppers:
+        wtp_values = [s["willing_to_pay"] for s in shoppers]
+        min_wtp = min(wtp_values)
+        max_wtp = max(wtp_values)
+        avg_wtp = sum(wtp_values) / len(wtp_values)
+        logger.info(f"      Demand: {len(shoppers)} units, WTP range ${min_wtp}-${max_wtp}, avg ${avg_wtp:.2f}")
+
+    # Create flat list of seller offers sorted by price (descending - most expensive first)
     seller_list = []
     for agent_name, offer in offers.items():
+        logger.info(f"      Seller {agent_name}: price=${offer['price']}, quantity={offer['quantity']}, inventory={offer['inventory_available']}")
         if offer["quantity"] > 0 and offer["inventory_available"] > 0:
-            for _ in range(offer["quantity"]):
+            # VALIDATION: Cap expansion at current inventory to prevent overselling
+            current_inventory = state["agent_ledgers"][agent_name]["inventory"]
+            actual_quantity = min(offer["quantity"], current_inventory)
+
+            if actual_quantity < offer["quantity"]:
+                logger.warning(f"      ⚠️  {agent_name} offered {offer['quantity']} units but only has {current_inventory} inventory. Capping at {actual_quantity}.")
+
+            for i in range(actual_quantity):
                 seller_list.append({
                     "agent_name": agent_name,
                     "price": offer["price"],
-                    "unit": 1
+                    "unit": 1,
+                    "seller_unit_id": f"{agent_name}_{i}"  # Unique ID for tracking
                 })
 
-    seller_list.sort(key=lambda x: x["price"])
+    seller_list.sort(key=lambda x: x["price"], reverse=True)
+    logger.info(f"  → Created {len(seller_list)} seller units (total supply)")
+    logger.info(f"      Seller units sample: {seller_list[:3] if seller_list else 'EMPTY'}")
 
-    # Two-pointer matching algorithm
+    # PHASE 1: Greedy matching - each shopper buys from most expensive seller they can afford
     new_unmet_demand_log = []
 
-    # Track quantities sold per agent
-    quantities_sold = {agent: 0 for agent in offers.keys()}
+    # Track shopper-to-seller assignments (shopper_id -> seller_unit_id)
+    shopper_assignments = {}
 
-    # Track shopper demand fulfillment
-    shopper_purchases = {}
+    # Track which seller units are still available (index into seller_list)
+    available_sellers = list(range(len(seller_list)))
 
-    i = 0  # Shopper pointer
-    j = 0  # Seller pointer
+    logger.info(f"  → Phase 1: Priority matching ({len(shoppers)} shoppers vs {len(available_sellers)} available units)")
 
-    while i < len(shoppers) and j < len(seller_list):
-        shopper = shoppers[i]
-        seller = seller_list[j]
+    # Process each shopper in order (highest WTP first)
+    for shopper in shoppers:
+        matched = False
 
-        if shopper["willing_to_pay"] >= seller["price"]:
-            # Match!
-            quantities_sold[seller["agent_name"]] += 1
+        # Find the most expensive seller this shopper can afford
+        for idx in available_sellers:
+            seller = seller_list[idx]
 
-            # Track shopper purchase
-            if shopper["shopper_id"] not in shopper_purchases:
-                shopper_purchases[shopper["shopper_id"]] = 0
-            shopper_purchases[shopper["shopper_id"]] += 1
+            if shopper["willing_to_pay"] >= seller["price"]:
+                # Match!
+                shopper_assignments[shopper["shopper_id"]] = {
+                    "seller_unit_id": seller["seller_unit_id"],
+                    "seller_idx": idx,
+                    "agent_name": seller["agent_name"],
+                    "price": seller["price"],
+                    "willing_to_pay": shopper["willing_to_pay"],
+                    "original_shopper_id": shopper.get("original_shopper_id", shopper["shopper_id"])
+                }
 
-            i += 1
-            j += 1
-        else:
-            # No match - shopper's price too low
+                # Remove this seller unit from available pool
+                available_sellers.remove(idx)
+                matched = True
+                break
+
+        if not matched:
+            # No affordable seller found
             unmet = {
                 "day": day,
                 "shopper_id": shopper["shopper_id"],
@@ -704,19 +852,92 @@ def run_market_simulation(state: EconomicState) -> Dict[str, Any]:
                 "quantity": 1
             }
             new_unmet_demand_log.append(unmet)
-            i += 1
 
-    # Remaining shoppers are unmet
-    while i < len(shoppers):
-        shopper = shoppers[i]
-        unmet = {
-            "day": day,
-            "shopper_id": shopper["shopper_id"],
-            "willing_to_pay": shopper["willing_to_pay"],
-            "quantity": 1
-        }
-        new_unmet_demand_log.append(unmet)
-        i += 1
+    phase1_matched = len(shopper_assignments)
+    phase1_unmet = len(new_unmet_demand_log)
+
+    logger.debug(f"  → Phase 1 complete: {phase1_matched} matched, {phase1_unmet} unmet, {len(available_sellers)} unsold units")
+
+    # PHASE 2: Price optimization - re-match to cheaper alternatives if there are matched shoppers and unsold inventory
+    # This runs even if some demand is unmet (e.g., lowball shoppers who can't afford anything)
+    if phase1_matched > 0 and len(available_sellers) > 0:
+        logger.debug(f"  → Phase 2: Price optimization ({phase1_matched} matched shoppers, {len(available_sellers)} unsold units available)")
+
+        # Sort available sellers by price (cheapest first)
+        available_sellers_sorted = sorted(available_sellers, key=lambda idx: seller_list[idx]["price"])
+
+        # Sort matched shoppers by their current price (most expensive first) - these are candidates for re-matching
+        matched_shoppers = sorted(
+            shopper_assignments.items(),
+            key=lambda x: x[1]["price"],
+            reverse=True
+        )
+
+        rematch_count = 0
+        total_savings = 0
+
+        # Try to re-match shoppers from expensive to cheap sellers
+        for shopper_id, current_assignment in matched_shoppers:
+            if not available_sellers_sorted:
+                break  # No more cheap inventory
+
+            # Get cheapest available seller
+            cheapest_idx = available_sellers_sorted[0]
+            cheapest_seller = seller_list[cheapest_idx]
+
+            # Can this shopper afford the cheapest available seller?
+            if current_assignment["willing_to_pay"] >= cheapest_seller["price"]:
+                # Is it actually cheaper than their current assignment?
+                if cheapest_seller["price"] < current_assignment["price"]:
+                    # Re-match!
+                    old_seller_idx = current_assignment["seller_idx"]
+                    old_price = current_assignment["price"]
+                    savings = old_price - cheapest_seller["price"]
+
+                    # Update assignment (preserve original_shopper_id)
+                    shopper_assignments[shopper_id] = {
+                        "seller_unit_id": cheapest_seller["seller_unit_id"],
+                        "seller_idx": cheapest_idx,
+                        "agent_name": cheapest_seller["agent_name"],
+                        "price": cheapest_seller["price"],
+                        "willing_to_pay": current_assignment["willing_to_pay"],
+                        "original_shopper_id": current_assignment.get("original_shopper_id", shopper_id)
+                    }
+
+                    # Free up the old (expensive) seller unit
+                    available_sellers_sorted.append(old_seller_idx)
+                    available_sellers_sorted.sort(key=lambda idx: seller_list[idx]["price"])
+
+                    # Remove the new (cheap) seller unit from available
+                    available_sellers_sorted.pop(0)
+
+                    rematch_count += 1
+                    total_savings += savings
+                    logger.debug(f"      Re-matched {shopper_id}: ${old_price} → ${cheapest_seller['price']} (saved ${savings})")
+
+        if rematch_count > 0:
+            logger.debug(f"  → Phase 2 complete: {rematch_count} shoppers re-matched, total consumer savings: ${total_savings}")
+        else:
+            logger.debug(f"  → Phase 2 complete: No beneficial re-matches found")
+
+    # Calculate final quantities sold per agent
+    quantities_sold = {agent: 0 for agent in offers.keys()}
+    shopper_purchases = {}  # Track purchases by ORIGINAL shopper_id
+
+    logger.info(f"  → Aggregating {len(shopper_assignments)} assignments")
+
+    for shopper_id, assignment in shopper_assignments.items():
+        quantities_sold[assignment["agent_name"]] += 1
+
+        # Use original_shopper_id to aggregate purchases (expanded shoppers have format "S1_unit0", "S1_unit1", etc.)
+        # We need to track by the original shopper ID to update demand_remaining correctly
+        original_id = assignment.get("original_shopper_id", shopper_id)
+        if original_id not in shopper_purchases:
+            shopper_purchases[original_id] = 0
+        shopper_purchases[original_id] += 1
+
+    logger.info(f"  → Quantities sold: {quantities_sold}")
+    logger.info(f"  → Unique shoppers served: {len(shopper_purchases)}")
 
     # Create aggregated market log entries (one per seller per day)
     new_market_log = []
@@ -741,6 +962,11 @@ def run_market_simulation(state: EconomicState) -> Dict[str, Any]:
 
             # Log individual agent sales
             logger.info(f"    {agent_name} sold {qty} units at ${price}/unit (Revenue: ${revenue})")
+
+            # VALIDATION: Ensure agent has enough inventory before decrement (prevent overselling)
+            if ledger["inventory"] < qty:
+                logger.error(f"  ❌ OVERSELLING DETECTED in run_market_simulation: {agent_name} has {ledger['inventory']} units but trying to sell {qty}!")
+                raise ValueError(f"Overselling in market simulation: {agent_name} inventory {ledger['inventory']} < quantity {qty}")
 
             # DEBUG: Log Seller_2 inventory changes
             if agent_name == "Seller_2":

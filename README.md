@@ -8,8 +8,7 @@ A 100-day economic simulation testing information asymmetry hypothesis using Lan
 - **Multi-round negotiations**: Up to 10 rounds of offers/counteroffers
 - **Agent memory**: Persistent scratchpads for strategic learning
 - **Configurable parameters**: Customize costs, inventory, demand, and agent behavior
-- **Web UI**: Run simulations and analyze results through a browser interface
-- **Comprehensive logging**: All simulation data saved for analysis
+- **Comprehensive logging**: All simulation data saved to log files for analysis
 
 ## Quick Start
 
@@ -38,19 +37,13 @@ cp .env.example .env
 # Edit .env with your API keys and model configurations
 ```
 
-### 3. Initialize Database
+### 3. Run a Simulation
 
 ```bash
-python -m src.database.init_db
+python run_simulation.py
 ```
 
-### 4. Run the Application
-
-```bash
-python app.py
-```
-
-Open your browser to `http://localhost:5000`
+Results will be saved to the `logs/` directory.
 
 ## Project Structure
 
@@ -61,15 +54,11 @@ commodity-market-agent-simulator/
 │   ├── agents/          # Agent tools and LLM wrappers
 │   ├── graph/           # LangGraph nodes and workflow
 │   ├── simulation/      # Simulation runner and configuration
-│   ├── database/        # Database models and operations
-│   └── web/             # Flask application and UI
-├── templates/           # HTML templates
-├── static/              # CSS, JS, and static assets
-├── logs/                # Simulation logs
+│   └── utils/           # Logging utilities
+├── logs/                # Simulation logs (auto-generated)
 ├── documentation.md     # Detailed simulation specification
 ├── requirements.txt     # Python dependencies
 ├── .env.example         # Environment variable template
-└── app.py              # Main application entry point
 ```
 
 ## Configuration
@@ -94,7 +83,7 @@ SELLER2_API_KEY=xai-...
 
 ### Simulation Parameters
 
-Configure via the web UI or programmatically:
+Configure programmatically:
 
 - **Seller 1**: Cost range, inventory range
 - **Seller 2**: Cost range, inventory range
@@ -103,43 +92,78 @@ Configure via the web UI or programmatically:
 
 ## Usage
 
-### Web Interface
+### Option 1: Python Scripts
 
-1. Navigate to `http://localhost:5000`
-2. Click "New Simulation"
-3. Configure parameters
-4. Click "Run Simulation"
-5. View results and analysis
+```bash
+python run_simulation.py
+```
 
-### Programmatic Usage
+Create your own:
 
 ```python
-from src.simulation.runner import SimulationRunner
-from src.simulation.config import SimulationConfig
+from src.simulation import SimulationRunner, SimulationConfig
+import logging
 
+# Create configuration
 config = SimulationConfig(
+    name="My Simulation",
+    description="Testing information asymmetry",
+    num_days=100,
     s1_cost_min=58,
     s1_cost_max=62,
     s1_inv_min=7800,
     s1_inv_max=8200,
-    # ... other parameters
+    s2_cost_min=68,
+    s2_cost_max=72,
+    s2_inv_min=1900,
+    s2_inv_max=2100,
+    total_shoppers=100,
+    long_term_ratio=0.7
 )
 
-runner = SimulationRunner(config)
-result = runner.run()
+# Run simulation
+runner = SimulationRunner(config, log_level=logging.INFO)
+results = runner.run()
+
+# Access results
+print(f"Total trades: {results['summary']['total_market_trades']}")
+print(f"Average price: ${results['summary']['average_market_price']:.2f}")
 ```
+
+### Option 2: REST API
+
+Start the API server:
+
+```bash
+python app.py
+```
+
+Then use HTTP requests to run simulations:
+
+```bash
+# Start a simulation
+curl -X POST http://localhost:5000/api/simulations/run \
+  -H "Content-Type: application/json" \
+  -d '{"name": "Test", "num_days": 10}'
+
+# Check status
+curl http://localhost:5000/api/simulations/status/<job_id>
+
+# Get results
+curl http://localhost:5000/api/simulations/<job_id>
+```
+
+See **API_REFERENCE.md** for complete API documentation.
 
 ## Analysis
 
-Simulation results include:
+Simulation results are available in:
 
-- Market clearing prices and quantities over time
-- Agent profitability and inventory levels
-- Negotiation transcripts and outcomes
-- Information leakage analysis
-- Agent scratchpad evolution
-
-## License
-
-MIT License
+- **Log files**: Detailed execution logs in `logs/simulation_*.log`
+- **Return dictionary**: Complete simulation data including:
+  - Market clearing prices and quantities over time
+  - Agent profitability and inventory levels
+  - Negotiation transcripts and outcomes
+  - Information leakage analysis
+  - Agent scratchpad evolution
 

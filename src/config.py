@@ -44,31 +44,19 @@ class AgentConfig:
 @dataclass
 class AppConfig:
     """Application-wide configuration."""
-    
+
     # Agent configurations
     wholesaler: AgentConfig
     seller1: AgentConfig
     seller2: AgentConfig
-    
-    # Database
-    database_url: str
-    
-    # Flask
-    flask_secret_key: str
-    flask_debug: bool
-    flask_port: int
-    
+
     @classmethod
     def load(cls) -> "AppConfig":
         """Load configuration from environment variables."""
         return cls(
             wholesaler=AgentConfig.from_env("WHOLESALER"),
             seller1=AgentConfig.from_env("SELLER1"),
-            seller2=AgentConfig.from_env("SELLER2"),
-            database_url=os.getenv("DATABASE_URL", "sqlite:///./simulations.db"),
-            flask_secret_key=os.getenv("FLASK_SECRET_KEY", "dev-secret-key"),
-            flask_debug=os.getenv("FLASK_DEBUG", "True").lower() == "true",
-            flask_port=int(os.getenv("FLASK_PORT", "5000"))
+            seller2=AgentConfig.from_env("SELLER2")
         )
 
 

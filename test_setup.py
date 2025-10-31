@@ -6,58 +6,36 @@ import os
 def test_imports():
     """Test that all required modules can be imported."""
     print("Testing imports...")
-    
-    try:
-        import flask
-        print("✓ Flask")
-    except ImportError as e:
-        print(f"✗ Flask: {e}")
-        return False
-    
+
     try:
         import langgraph
         print("✓ LangGraph")
     except ImportError as e:
         print(f"✗ LangGraph: {e}")
         return False
-    
+
     try:
         import langchain
         print("✓ LangChain")
     except ImportError as e:
         print(f"✗ LangChain: {e}")
         return False
-    
-    try:
-        import sqlalchemy
-        print("✓ SQLAlchemy")
-    except ImportError as e:
-        print(f"✗ SQLAlchemy: {e}")
-        return False
-    
-    try:
-        import plotly
-        print("✓ Plotly")
-    except ImportError as e:
-        print(f"✗ Plotly: {e}")
-        return False
-    
+
     try:
         from dotenv import load_dotenv
         print("✓ python-dotenv")
     except ImportError as e:
         print(f"✗ python-dotenv: {e}")
         return False
-    
+
     return True
 
 
 def test_project_structure():
     """Test that all required files and directories exist."""
     print("\nTesting project structure...")
-    
+
     required_files = [
-        "app.py",
         "requirements.txt",
         ".env.example",
         "README.md",
@@ -72,15 +50,9 @@ def test_project_structure():
         "src/graph/workflow.py",
         "src/simulation/config.py",
         "src/simulation/shoppers.py",
-        "src/simulation/runner.py",
-        "src/database/models.py",
-        "src/database/operations.py",
-        "src/web/app.py",
-        "templates/index.html",
-        "static/style.css",
-        "static/app.js"
+        "src/simulation/runner.py"
     ]
-    
+
     all_exist = True
     for file_path in required_files:
         if os.path.exists(file_path):
@@ -88,7 +60,7 @@ def test_project_structure():
         else:
             print(f"✗ {file_path} (missing)")
             all_exist = False
-    
+
     return all_exist
 
 
@@ -111,49 +83,35 @@ def test_env_file():
 def test_module_imports():
     """Test that project modules can be imported."""
     print("\nTesting project modules...")
-    
+
     try:
         from src.config import get_config
         print("✓ src.config")
     except Exception as e:
         print(f"✗ src.config: {e}")
         return False
-    
+
     try:
         from src.models.state import EconomicState
         print("✓ src.models.state")
     except Exception as e:
         print(f"✗ src.models.state: {e}")
         return False
-    
+
     try:
         from src.simulation.config import SimulationConfig
         print("✓ src.simulation.config")
     except Exception as e:
         print(f"✗ src.simulation.config: {e}")
         return False
-    
+
     try:
         from src.simulation.shoppers import generate_shopper_database
         print("✓ src.simulation.shoppers")
     except Exception as e:
         print(f"✗ src.simulation.shoppers: {e}")
         return False
-    
-    try:
-        from src.database.models import Simulation
-        print("✓ src.database.models")
-    except Exception as e:
-        print(f"✗ src.database.models: {e}")
-        return False
-    
-    try:
-        from src.web import create_app
-        print("✓ src.web")
-    except Exception as e:
-        print(f"✗ src.web: {e}")
-        return False
-    
+
     return True
 
 
@@ -196,9 +154,7 @@ def main():
         print("\nNext steps:")
         print("1. Copy .env.example to .env (if not done)")
         print("2. Edit .env with your API keys")
-        print("3. Run: python -m src.database.init_db")
-        print("4. Run: python app.py")
-        print("5. Open browser to http://localhost:5000")
+        print("3. Run simulations programmatically using Python (see README.md)")
         return 0
     else:
         print("\n✗ Some tests failed. Please fix the issues above.")

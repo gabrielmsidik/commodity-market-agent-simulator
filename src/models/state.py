@@ -1,6 +1,6 @@
 """State models for the economic simulation."""
 
-from typing import TypedDict, List, Dict, Optional, Annotated
+from typing import TypedDict, List, Dict, Optional, Annotated, Any
 import operator
 
 
@@ -44,9 +44,10 @@ class NegotiationOffer(TypedDict):
     action: str  # "offer", "counteroffer", "accept", or "reject"
 
 
-class ShopperPoolEntry(TypedDict):
+class ShopperPoolEntry(TypedDict, total=False):
     """Entry in the daily shopper pool."""
-    shopper_id: str
+    shopper_id: str  # Unique ID per demand unit (e.g., "S1_unit0", "S1_unit1")
+    original_shopper_id: str  # Original shopper ID for aggregation (optional)
     willing_to_pay: int  # Integer price
     demand_unit: int  # Always 1 (for matching algorithm)
 
@@ -82,4 +83,7 @@ class EconomicState(TypedDict):
 
     # Agent memory (persistent across all days)
     agent_scratchpads: Dict[str, str]  # Free-form text notes
+
+    # Simulation configuration (immutable)
+    config: Any  # SimulationConfig (using Any to avoid circular import)
 

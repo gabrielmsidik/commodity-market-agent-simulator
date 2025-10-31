@@ -14,35 +14,49 @@ class SimulationConfig:
     num_days: int = 100
     
     # Seller 1 configuration
-    s1_cost_min: int = 58
+
+    # cost range
+    s1_cost_min: int = 58 
     s1_cost_max: int = 62
+    
+    # inventory range
     s1_inv_min: int = 7800
     s1_inv_max: int = 8200
-    s1_starting_cash: float = 10000.0
-    
+
+    s1_starting_cash: float = 0.0  # Sellers start with $0 (in debt for initial inventory)
+
     # Seller 2 configuration
+    
     s2_cost_min: int = 68
     s2_cost_max: int = 72
+    
     s2_inv_min: int = 1900
     s2_inv_max: int = 2100
-    s2_starting_cash: float = 5000.0
     
+    s2_starting_cash: float = 0.0  # Sellers start with $0 (in debt for initial inventory)
+
     # Wholesaler configuration
-    wholesaler_starting_cash: float = 50000.0
+    wholesaler_starting_cash: float = 50000.0  # Wholesaler starts with working capital
     
     # Shopper configuration
     total_shoppers: int = 400  # Increased by 4x to create more demand
     long_term_ratio: float = 0.7  # 70% long-term, 30% short-term
 
     # Long-term shopper parameters
-    lt_demand_min: int = 10
-    lt_demand_max: int = 20
+    # shopper demand
+    lt_demand_min: int = 20
+    lt_demand_max: int = 50
     lt_window_min: int = 50  # Extended from 30 to spread across 100 days
     lt_window_max: int = 90  # Extended from 60 to spread across 100 days
+    
+    # initial starting shopping price
     lt_base_price_min: float = 80.0
     lt_base_price_max: float = 100.0
+
+    # final shopping price range
     lt_max_price_min: float = 110.0
     lt_max_price_max: float = 130.0
+    
     lt_urgency_min: float = 0.7
     lt_urgency_max: float = 1.2
 
@@ -51,10 +65,12 @@ class SimulationConfig:
     st_demand_max: int = 50
     st_window_min: int = 10  # Extended from 5 to create more overlap
     st_window_max: int = 20  # Extended from 10 to create more overlap
+
     st_base_price_min: float = 100.0
     st_base_price_max: float = 120.0
     st_max_price_min: float = 120.0
     st_max_price_max: float = 150.0
+    
     st_urgency_min: float = 1.5
     st_urgency_max: float = 2.5
     

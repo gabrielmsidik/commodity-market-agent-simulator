@@ -93,9 +93,10 @@ class SimulationRunner:
                 "Wholesaler": "",
                 "Seller_1": "",
                 "Seller_2": ""
-            }
+            },
+            "config": self.config
         }
-        
+
         return initial_state
     
     def run(self) -> Dict[str, Any]:
@@ -391,7 +392,7 @@ class SimulationRunner:
         today_unmet = [u for u in state["unmet_demand_log"] if u["day"] == day]
 
         # Get negotiation info if it's a negotiation day
-        is_negotiation_day = day in [1, 21, 41, 61, 81]
+        is_negotiation_day = day in self.config.negotiation_days
 
         if is_negotiation_day:
             self.logger.info(f"  [NEGOTIATION DAY]")
@@ -454,14 +455,14 @@ class SimulationRunner:
         for agent in ["Seller_1", "Seller_2", "Wholesaler"]:
             perf = summary["agent_performance"][agent]
             self.logger.info(f"  {agent}:")
-            self.logger.info(f"    Revenue: ${perf['revenue']:.2f}")
-            self.logger.info(f"    Costs: ${perf['costs']:.2f}")
-            self.logger.info(f"    Profit: ${perf['profit']:.2f}")
+            self.logger.info(f"    💰 PROFIT & LOSS (PnL): ${perf['profit']:.2f}")
+            self.logger.info(f"       - Revenue: ${perf['revenue']:.2f}")
+            self.logger.info(f"       - Costs: ${perf['costs']:.2f}")
+            self.logger.info(f"    Final Cash: ${perf['final_cash']:.2f}")
             self.logger.info(f"    Market Sales (to shoppers): {perf['market_units_sold']} units")
             self.logger.info(f"    Wholesale Sales (to wholesaler): {perf['wholesale_units_sold']} units")
             self.logger.info(f"    Wholesale Purchases (from sellers): {perf['wholesale_units_bought']} units")
             self.logger.info(f"    Remaining Inventory: {perf['remaining_inventory']} units")
-            self.logger.info(f"    Final Cash: ${perf['final_cash']:.2f}")
         self.logger.info("")
         self.logger.info("TRADE HISTORY:")
         self.logger.info("")
