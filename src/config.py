@@ -17,7 +17,8 @@ class AgentConfig:
     base_url: str
     api_key: str
     temperature: float = 0.7
-    
+    optimization_goal: str = "roi"  # Options: "roi", "revenue", "gross_profit", "cost_recovery"
+
     @classmethod
     def from_env(cls, agent_name: str) -> "AgentConfig":
         """Load agent configuration from environment variables."""
@@ -61,10 +62,20 @@ class AppConfig:
     @classmethod
     def load(cls) -> "AppConfig":
         """Load configuration from environment variables."""
+        # Load base configs
+        wholesaler = AgentConfig.from_env("WHOLESALER")
+        seller1 = AgentConfig.from_env("SELLER1")
+        seller2 = AgentConfig.from_env("SELLER2")
+
+        # Set optimization goals: Wholesaler → revenue, Sellers → ROI
+        wholesaler.optimization_goal = "revenue"
+        seller1.optimization_goal = "roi"
+        seller2.optimization_goal = "roi"
+
         return cls(
-            wholesaler=AgentConfig.from_env("WHOLESALER"),
-            seller1=AgentConfig.from_env("SELLER1"),
-            seller2=AgentConfig.from_env("SELLER2"),
+            wholesaler=wholesaler,
+            seller1=seller1,
+            seller2=seller2,
             database_url=os.getenv("DATABASE_URL", "sqlite:///./simulations.db"),
             flask_secret_key=os.getenv("FLASK_SECRET_KEY", "dev-secret-key"),
             flask_debug=os.getenv("FLASK_DEBUG", "True").lower() == "true",

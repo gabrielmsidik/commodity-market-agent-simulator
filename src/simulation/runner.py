@@ -61,7 +61,13 @@ class SimulationRunner:
                     "inventory": s1_inv,
                     "cash": self.config.s1_starting_cash,
                     "cost_per_unit": s1_cost,
-                    "total_cost_incurred": s1_inv * s1_cost,
+                    # Enhanced cost accounting
+                    "initial_inventory": s1_inv,
+                    "initial_inventory_value": s1_inv * s1_cost,
+                    "book_value_remaining": s1_inv * s1_cost,  # Depreciates daily
+                    "accumulated_depreciation": 0.0,
+                    "total_cost_incurred": s1_inv * s1_cost,  # Total investment (initial + purchases)
+                    "incremental_cost_incurred": 0.0,  # Costs from purchases during simulation
                     "total_revenue": 0.0,
                     "private_sales_log": []
                 },
@@ -69,7 +75,13 @@ class SimulationRunner:
                     "inventory": s2_inv,
                     "cash": self.config.s2_starting_cash,
                     "cost_per_unit": s2_cost,
+                    # Enhanced cost accounting
+                    "initial_inventory": s2_inv,
+                    "initial_inventory_value": s2_inv * s2_cost,
+                    "book_value_remaining": s2_inv * s2_cost,
+                    "accumulated_depreciation": 0.0,
                     "total_cost_incurred": s2_inv * s2_cost,
+                    "incremental_cost_incurred": 0.0,
                     "total_revenue": 0.0,
                     "private_sales_log": []
                 },
@@ -77,7 +89,13 @@ class SimulationRunner:
                     "inventory": 0,
                     "cash": self.config.wholesaler_starting_cash,
                     "cost_per_unit": 0,
+                    # Enhanced cost accounting
+                    "initial_inventory": 0,
+                    "initial_inventory_value": 0.0,
+                    "book_value_remaining": 0.0,
+                    "accumulated_depreciation": 0.0,
                     "total_cost_incurred": 0.0,
+                    "incremental_cost_incurred": 0.0,
                     "total_revenue": 0.0,
                     "private_sales_log": []
                 }
@@ -456,7 +474,13 @@ class SimulationRunner:
             self.logger.info(f"  {agent}:")
             self.logger.info(f"    Revenue: ${perf['revenue']:.2f}")
             self.logger.info(f"    Costs: ${perf['costs']:.2f}")
-            self.logger.info(f"    Profit: ${perf['profit']:.2f}")
+            self.logger.info(f"    Net Position (Profit/Loss): ${perf['net_position']:.2f}")
+            self.logger.info(f"    Gross Profit: ${perf['gross_profit']:.2f}")
+            self.logger.info(f"    ROI: {perf['roi']:.1%}")
+            self.logger.info(f"    Cost Recovery Rate: {perf['cost_recovery_rate']:.1%}")
+            self.logger.info(f"    Inventory Turnover: {perf['inventory_turnover']:.1%}")
+            self.logger.info(f"    Book Value Remaining: ${perf['book_value_remaining']:.2f}")
+            self.logger.info(f"    Accumulated Depreciation: ${perf['accumulated_depreciation']:.2f}")
             self.logger.info(f"    Market Sales (to shoppers): {perf['market_units_sold']} units")
             self.logger.info(f"    Wholesale Sales (to wholesaler): {perf['wholesale_units_sold']} units")
             self.logger.info(f"    Wholesale Purchases (from sellers): {perf['wholesale_units_bought']} units")
@@ -539,11 +563,9 @@ class SimulationRunner:
         # Calculate unmet demand
         total_unmet = sum(entry["quantity"] for entry in unmet_demand_log)
 
-        # Agent profitability
+        # Agent profitability with enhanced metrics
         agent_profits = {}
         for agent_name, ledger in ledgers.items():
-            profit = ledger["total_revenue"] - ledger["total_cost_incurred"]
-
             # Calculate market units sold (to shoppers)
             market_units_sold = sum(sale["quantity"] for sale in ledger["private_sales_log"])
 
@@ -559,10 +581,52 @@ class SimulationRunner:
                 if trade["buyer"] == agent_name
             )
 
+            # Total units sold
+            total_units_sold = market_units_sold + wholesale_units_sold
+
+            # Enhanced metrics
+            initial_investment = ledger.get("initial_inventory_value", 0.0)
+            revenue = ledger["total_revenue"]
+            total_cost = ledger["total_cost_incurred"]
+
+            # Gross Profit (margin on actual sales, not counting unsold inventory)
+            if total_units_sold > 0:
+                avg_cost_per_unit = ledger.get("cost_per_unit", 0)
+                cogs = total_units_sold * avg_cost_per_unit
+                gross_profit = revenue - cogs
+            else:
+                gross_profit = 0.0
+
+            # Net Position (total P&L including initial investment)
+            net_position = revenue - total_cost
+
+            # Cost Recovery Rate
+            cost_recovery_rate = (revenue / initial_investment) if initial_investment > 0 else 0.0
+
+            # ROI
+            roi = (net_position / initial_investment) if initial_investment > 0 else 0.0
+
+            # Inventory Turnover
+            initial_inventory = ledger.get("initial_inventory", 0)
+            inventory_turnover = (total_units_sold / initial_inventory) if initial_inventory > 0 else 0.0
+
+            # Book value and depreciation
+            book_value = ledger.get("book_value_remaining", initial_investment)
+            accumulated_depreciation = ledger.get("accumulated_depreciation", 0.0)
+
             agent_profits[agent_name] = {
-                "revenue": ledger["total_revenue"],
-                "costs": ledger["total_cost_incurred"],
-                "profit": profit,
+                "revenue": revenue,
+                "costs": total_cost,
+                "profit": net_position,  # Keep as "profit" for backward compatibility
+                # Enhanced metrics
+                "gross_profit": gross_profit,
+                "net_position": net_position,
+                "cost_recovery_rate": cost_recovery_rate,
+                "roi": roi,
+                "inventory_turnover": inventory_turnover,
+                "book_value_remaining": book_value,
+                "accumulated_depreciation": accumulated_depreciation,
+                # Sales breakdown
                 "market_units_sold": market_units_sold,
                 "wholesale_units_sold": wholesale_units_sold,
                 "wholesale_units_bought": wholesale_units_bought,

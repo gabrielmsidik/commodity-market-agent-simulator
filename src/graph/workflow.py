@@ -98,6 +98,7 @@ def create_simulation_graph() -> StateGraph:
     graph.add_node("update_target_seller2", update_negotiation_target_seller2)
     graph.add_node("set_market_offers", nodes.set_market_offers)
     graph.add_node("run_market_simulation", nodes.run_market_simulation)
+    graph.add_node("apply_daily_depreciation", nodes.apply_daily_depreciation)
     
     # Set entry point
     graph.set_entry_point("setup_day")
@@ -156,10 +157,12 @@ def create_simulation_graph() -> StateGraph:
 
     # After updating target from Seller_2, go to market
     graph.add_edge("update_target_seller2", "set_market_offers")
-    
+
     graph.add_edge("set_market_offers", "run_market_simulation")
-    # End the graph after market simulation - runner will handle day loop
-    graph.add_edge("run_market_simulation", END)
+    # Apply daily depreciation after market clears
+    graph.add_edge("run_market_simulation", "apply_daily_depreciation")
+    # End the graph after depreciation - runner will handle day loop
+    graph.add_edge("apply_daily_depreciation", END)
     
     return graph.compile()
 

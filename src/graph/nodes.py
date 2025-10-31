@@ -20,6 +20,74 @@ logger = logging.getLogger()
 # ECONOMIC PRIORS - Injected into every LLM call for rational decision-making
 # ============================================================================
 
+def calculate_current_metrics(ledger: Dict[str, Any], num_days: int, current_day: int) -> Dict[str, Any]:
+    """
+    Calculate current business metrics for an agent.
+
+    Returns metrics like ROI, cost recovery rate, gross profit, etc.
+    """
+    initial_investment = ledger.get("initial_inventory_value", 0.0)
+    revenue = ledger.get("total_revenue", 0.0)
+    total_cost = ledger.get("total_cost_incurred", 0.0)
+    inventory = ledger.get("inventory", 0)
+    initial_inventory = ledger.get("initial_inventory", 0)
+    cost_per_unit = ledger.get("cost_per_unit", 0)
+    book_value = ledger.get("book_value_remaining", initial_investment)
+    accumulated_depreciation = ledger.get("accumulated_depreciation", 0.0)
+
+    # Units sold
+    units_sold = initial_inventory - inventory
+
+    # Gross Profit (margin on sales)
+    if units_sold > 0:
+        cogs = units_sold * cost_per_unit
+        gross_profit = revenue - cogs
+    else:
+        gross_profit = 0.0
+
+    # Net Position
+    net_position = revenue - total_cost
+
+    # Cost Recovery Rate
+    cost_recovery_rate = (revenue / initial_investment) if initial_investment > 0 else 0.0
+
+    # ROI
+    roi = (net_position / initial_investment) if initial_investment > 0 else 0.0
+
+    # Inventory Turnover
+    inventory_turnover = (units_sold / initial_inventory) if initial_inventory > 0 else 0.0
+
+    # Daily depreciation
+    daily_depreciation = (initial_investment / num_days) if num_days > 0 else 0.0
+
+    # Days to breakeven (at current revenue rate)
+    if current_day > 0:
+        daily_revenue_rate = revenue / current_day
+        remaining_cost_to_recover = initial_investment - revenue
+        if daily_revenue_rate > 0:
+            days_to_breakeven = remaining_cost_to_recover / daily_revenue_rate
+        else:
+            days_to_breakeven = 999  # Impossible to break even
+    else:
+        days_to_breakeven = 999
+
+    return {
+        "initial_investment": initial_investment,
+        "revenue": revenue,
+        "gross_profit": gross_profit,
+        "net_position": net_position,
+        "cost_recovery_rate": cost_recovery_rate,
+        "roi": roi,
+        "inventory_turnover": inventory_turnover,
+        "units_sold": units_sold,
+        "inventory_remaining": inventory,
+        "book_value": book_value,
+        "accumulated_depreciation": accumulated_depreciation,
+        "daily_depreciation": daily_depreciation,
+        "days_to_breakeven": days_to_breakeven
+    }
+
+
 def get_economic_priors(state: EconomicState, agent_name: str, context: str = "general") -> str:
     """
     Generate economic prior information to inject into LLM prompts.
@@ -42,19 +110,35 @@ def get_economic_priors(state: EconomicState, agent_name: str, context: str = "g
     total_days = state["num_days"]
     days_remaining = total_days - current_day
 
-    # Get agent's current inventory
+    # Get agent's current ledger and metrics
     ledger = state["agent_ledgers"].get(agent_name, {})
-    inventory = ledger.get("inventory", 0)
+    metrics = calculate_current_metrics(ledger, total_days, current_day)
 
-    # Build priors string
+    # Build priors string with enhanced business metrics
     priors = f"""
-=== ECONOMIC CONTEXT & CONSTRAINTS ===
+=== BUSINESS PERFORMANCE DASHBOARD ===
 
-CRITICAL TIME CONSTRAINTS:
+YOUR CURRENT FINANCIAL POSITION:
+- Initial Investment: ${metrics['initial_investment']:,.0f}
+- Current Revenue: ${metrics['revenue']:,.0f}
+- Net Position (P&L): ${metrics['net_position']:,.0f}
+- Gross Profit: ${metrics['gross_profit']:,.0f}
+- ROI: {metrics['roi']:.1%}
+- Cost Recovery Rate: {metrics['cost_recovery_rate']:.1%}
+- Inventory Turnover: {metrics['inventory_turnover']:.1%}
+
+INVENTORY STATUS:
+- Current Inventory: {metrics['inventory_remaining']} units
+- Units Sold So Far: {metrics['units_sold']} units
+- Book Value (after depreciation): ${metrics['book_value']:,.0f}
+- Accumulated Depreciation: ${metrics['accumulated_depreciation']:,.0f}
+- Daily Depreciation: ${metrics['daily_depreciation']:,.0f}
+
+TIME & URGENCY:
 - Current Day: {current_day} of {total_days}
 - Days Remaining: {days_remaining} days
-- ⚠️ IMPORTANT: All unsold inventory at day {total_days} is DESTROYED (expires/perishes with ZERO value)
-- Your Current Inventory: {inventory} units
+- Est. Days to Breakeven: {metrics['days_to_breakeven']:.0f} days (at current revenue rate)
+- ⚠️ CRITICAL: All unsold inventory at day {total_days} EXPIRES (becomes worthless)
 
 MARKET FUNDAMENTALS:
 - Typical Market Price Range: $80-$110 per unit (shoppers' willingness to pay)
@@ -107,29 +191,42 @@ STRATEGIC IMPLICATIONS:
 
     # Add pricing-specific priors
     elif context == "pricing":
+        inventory = metrics['inventory_remaining']
+        required_daily_rate = inventory / max(days_remaining, 1)
+
         priors += f"""
 PRICING STRATEGY CONSIDERATIONS:
-- You have {days_remaining} days to sell {inventory} units
-- Required Daily Sales Rate: {inventory / max(days_remaining, 1):.1f} units/day to clear inventory
+- Inventory to Clear: {inventory} units
+- Required Daily Sales Rate: {required_daily_rate:.1f} units/day
+- Your Cost Recovery Status: {metrics['cost_recovery_rate']:.1%} (need to reach 100% to break even)
+- Current ROI: {metrics['roi']:.1%}
 - Shoppers' willingness to pay: $80-$110 (varies by shopper and day)
-- Price too high → No sales → Inventory expires worthless
-- Price too low → Sales but poor margins
+- Price too high → No sales → Inventory depreciates → Losses compound
+- Price too low → Sales but poor margins → Slower cost recovery
+
+DEPRECIATION IMPACT:
+- Daily Depreciation Cost: ${metrics['daily_depreciation']:,.0f}
+- Book Value Remaining: ${metrics['book_value']:,.0f}
+- ⚠️ Holding inventory costs you ${metrics['daily_depreciation']:,.0f} per day in depreciation!
 
 INVENTORY URGENCY:
 """
 
         # Calculate urgency based on inventory and time
         if days_remaining <= 10:
-            priors += f"""- 🚨 CRITICAL: Only {days_remaining} days left! Aggressive pricing needed to avoid losses
-- Holding inventory is VERY RISKY - it may expire worthless
+            priors += f"""- 🚨 CRITICAL: Only {days_remaining} days left! Aggressive pricing essential
+- Depreciation accelerating: ${metrics['daily_depreciation'] * days_remaining:,.0f} more value at risk
+- Focus on COST RECOVERY first, profit second
 """
         elif days_remaining <= 30:
             priors += f"""- ⚠️ MODERATE URGENCY: {days_remaining} days remaining
-- Start considering more competitive pricing to ensure inventory clears
+- Balance cost recovery with profit margins
+- Monitor ROI trend closely
 """
         else:
             priors += f"""- Low urgency: {days_remaining} days remaining
 - Can afford to be strategic with pricing
+- Focus on maximizing profit margins
 """
 
     priors += "\n=== END ECONOMIC CONTEXT ===\n"
@@ -792,6 +889,45 @@ def run_market_simulation(state: EconomicState) -> Dict[str, Any]:
         "agent_ledgers": new_ledgers,
         "shopper_database": new_shopper_database
     }
+
+
+@log_node_execution
+def apply_daily_depreciation(state: EconomicState) -> Dict[str, Any]:
+    """
+    Apply daily depreciation to inventory book values.
+
+    Uses linear depreciation: 1% per day over num_days period.
+    This reflects the time-value of holding perishable inventory.
+    """
+    num_days = state["num_days"]
+    current_day = state["day"]
+
+    new_ledgers = {}
+    for agent_name, ledger in state["agent_ledgers"].items():
+        initial_value = ledger.get("initial_inventory_value", 0.0)
+
+        if initial_value > 0:
+            # Linear depreciation: depreciate total value evenly over num_days
+            daily_depreciation = initial_value / num_days
+            new_accumulated_depreciation = ledger["accumulated_depreciation"] + daily_depreciation
+            new_book_value = initial_value - new_accumulated_depreciation
+
+            # Ensure book value doesn't go negative
+            new_book_value = max(0.0, new_book_value)
+
+            new_ledger = {
+                **ledger,
+                "accumulated_depreciation": new_accumulated_depreciation,
+                "book_value_remaining": new_book_value
+            }
+            new_ledgers[agent_name] = new_ledger
+
+            logger.debug(f"  [DEPRECIATION] {agent_name}: Daily depreciation ${daily_depreciation:.2f}, "
+                        f"Book value: ${new_book_value:.2f} (accumulated: ${new_accumulated_depreciation:.2f})")
+        else:
+            new_ledgers[agent_name] = ledger
+
+    return {"agent_ledgers": new_ledgers}
 
 
 @log_node_execution
