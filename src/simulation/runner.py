@@ -98,17 +98,33 @@ class SimulationRunner:
                     "incremental_cost_incurred": 0.0,
                     "total_revenue": 0.0,
                     "private_sales_log": []
+                },
+                "Wholesaler_2": {
+                    "inventory": 0,
+                    "cash": self.config.wholesaler_starting_cash,
+                    "cost_per_unit": 0,
+                    # Enhanced cost accounting
+                    "initial_inventory": 0,
+                    "initial_inventory_value": 0.0,
+                    "book_value_remaining": 0.0,
+                    "accumulated_depreciation": 0.0,
+                    "total_cost_incurred": 0.0,
+                    "incremental_cost_incurred": 0.0,
+                    "total_revenue": 0.0,
+                    "private_sales_log": []
                 }
             },
             "shopper_database": shopper_database,
             "negotiation_status": "pending",
             "current_negotiation_target": None,
+            "current_negotiation_wholesaler": None,  # Track which wholesaler is negotiating
             "negotiation_history": {
-                "Seller_1": [],
-                "Seller_2": []
+                "Seller_1": {"Wholesaler": [], "Wholesaler_2": []},
+                "Seller_2": {"Wholesaler": [], "Wholesaler_2": []}
             },
             "agent_scratchpads": {
                 "Wholesaler": "",
+                "Wholesaler_2": "",
                 "Seller_1": "",
                 "Seller_2": ""
             }
@@ -140,6 +156,7 @@ class SimulationRunner:
         self.logger.info(f"  Seller_2: Cost=${initial_state['agent_ledgers']['Seller_2']['cost_per_unit']}, "
                         f"Inventory={initial_state['agent_ledgers']['Seller_2']['inventory']}")
         self.logger.info(f"  Wholesaler: Inventory={initial_state['agent_ledgers']['Wholesaler']['inventory']}")
+        self.logger.info(f"  Wholesaler_2: Inventory={initial_state['agent_ledgers']['Wholesaler_2']['inventory']}")
         self.logger.info(f"  Total Shoppers: {len(initial_state['shopper_database'])}")
         self.logger.info("")
 
@@ -429,7 +446,7 @@ class SimulationRunner:
                            f"{total_volume} units, avg price ${avg_price:.2f}")
 
             # Log by seller
-            for seller in ["Seller_1", "Seller_2", "Wholesaler"]:
+            for seller in ["Seller_1", "Seller_2", "Wholesaler", "Wholesaler_2"]:
                 seller_trades = [t for t in market_trades if t["seller"] == seller]
                 if seller_trades:
                     volume = sum(t["quantity"] for t in seller_trades)
@@ -469,7 +486,7 @@ class SimulationRunner:
         self.logger.info(f"  (Shoppers who couldn't purchase due to high prices or no inventory)")
         self.logger.info("")
         self.logger.info("AGENT PERFORMANCE:")
-        for agent in ["Seller_1", "Seller_2", "Wholesaler"]:
+        for agent in ["Seller_1", "Seller_2", "Wholesaler", "Wholesaler_2"]:
             perf = summary["agent_performance"][agent]
             self.logger.info(f"  {agent}:")
             self.logger.info(f"    Revenue: ${perf['revenue']:.2f}")
@@ -513,7 +530,7 @@ class SimulationRunner:
         self.logger.info("AGENT SCRATCHPADS (Final State):")
         self.logger.info("")
         agent_scratchpads = final_state.get("agent_scratchpads", {})
-        for agent in ["Wholesaler", "Seller_1", "Seller_2"]:
+        for agent in ["Wholesaler", "Wholesaler_2", "Seller_1", "Seller_2"]:
             scratchpad = agent_scratchpads.get(agent, "")
             self.logger.info(f"  {agent}:")
             if scratchpad:

@@ -45,35 +45,39 @@ class AgentConfig:
 @dataclass
 class AppConfig:
     """Application-wide configuration."""
-    
+
     # Agent configurations
     wholesaler: AgentConfig
+    wholesaler2: AgentConfig  # Second wholesaler for competitive dynamics
     seller1: AgentConfig
     seller2: AgentConfig
-    
+
     # Database
     database_url: str
-    
+
     # Flask
     flask_secret_key: str
     flask_debug: bool
     flask_port: int
-    
+
     @classmethod
     def load(cls) -> "AppConfig":
         """Load configuration from environment variables."""
         # Load base configs
         wholesaler = AgentConfig.from_env("WHOLESALER")
+        wholesaler2 = AgentConfig.from_env("WHOLESALER2")
         seller1 = AgentConfig.from_env("SELLER1")
         seller2 = AgentConfig.from_env("SELLER2")
 
-        # Set optimization goals: Wholesaler → revenue, Sellers → ROI
+        # Set optimization goals: Wholesalers → revenue, Sellers → ROI
         wholesaler.optimization_goal = "revenue"
+        wholesaler2.optimization_goal = "revenue"
         seller1.optimization_goal = "roi"
         seller2.optimization_goal = "roi"
 
         return cls(
             wholesaler=wholesaler,
+            wholesaler2=wholesaler2,
             seller1=seller1,
             seller2=seller2,
             database_url=os.getenv("DATABASE_URL", "sqlite:///./simulations.db"),

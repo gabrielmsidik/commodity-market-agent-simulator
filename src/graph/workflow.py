@@ -26,11 +26,12 @@ def should_negotiate(state: EconomicState) -> Literal["init_negotiation", "set_m
 def negotiation_router(state: EconomicState) -> Literal["wholesaler_make_offer", "seller_respond", "execute_trade", "update_target_seller1", "update_target_seller2", "set_market_offers"]:
     """Route negotiation flow based on current state."""
     seller_name = state["current_negotiation_target"]
-    history = state["negotiation_history"][seller_name]
+    wholesaler_name = state.get("current_negotiation_wholesaler", "Wholesaler")
+    history = state["negotiation_history"][seller_name][wholesaler_name]
 
     if not history:
         # No offers yet, wholesaler starts
-        logger.debug(f"[Day {state['day']}] Negotiation Router: Starting negotiation with {seller_name}")
+        logger.debug(f"[Day {state['day']}] Negotiation Router: Starting negotiation {seller_name} ↔ {wholesaler_name}")
         return "wholesaler_make_offer"
 
     last_offer = history[-1]
@@ -42,17 +43,17 @@ def negotiation_router(state: EconomicState) -> Literal["wholesaler_make_offer",
         logger.debug(f"[Day {state['day']}] Negotiation Router: Offer accepted → execute_trade")
         return "execute_trade"
     elif last_offer["action"] == "reject" or round_number > 10:
-        # No trade, move to next seller
+        # No trade, move to next wholesaler or seller
         logger.debug(f"[Day {state['day']}] Negotiation Router: Negotiation ended (reject or max rounds)")
         if seller_name == "Seller_1":
-            logger.debug(f"[Day {state['day']}] → update_target_seller1 (transition to Seller_2)")
+            logger.debug(f"[Day {state['day']}] → update_target_seller1")
             return "update_target_seller1"
         else:
-            logger.debug(f"[Day {state['day']}] → update_target_seller2 (complete negotiations)")
+            logger.debug(f"[Day {state['day']}] → update_target_seller2")
             return "update_target_seller2"
 
     # Continue negotiation
-    if last_offer["agent"] == "Wholesaler":
+    if last_offer["agent"] in ["Wholesaler", "Wholesaler_2"]:
         logger.debug(f"[Day {state['day']}] Negotiation Router: Round {round_number} → seller_respond")
         return "seller_respond"
     else:
@@ -61,21 +62,47 @@ def negotiation_router(state: EconomicState) -> Literal["wholesaler_make_offer",
 
 
 def update_negotiation_target_seller1(state: EconomicState) -> dict:
-    """Update negotiation target from Seller_1 to Seller_2."""
-    logger.debug(f"[Day {state['day']}] Updating target: Seller_1 → Seller_2")
-    return {
-        "current_negotiation_target": "Seller_2",
-        "negotiation_status": "seller_2_negotiating"
-    }
+    """Update negotiation: Seller_1 moves to next wholesaler or advances to Seller_2."""
+    current_wholesaler = state.get("current_negotiation_wholesaler")
+
+    if current_wholesaler == "Wholesaler":
+        # Move to Wholesaler_2
+        logger.debug(f"[Day {state['day']}] Seller_1 → Wholesaler_2")
+        return {
+            "current_negotiation_target": "Seller_1",
+            "current_negotiation_wholesaler": "Wholesaler_2",
+            "negotiation_status": "seller_1_wholesaler_2_negotiating"
+        }
+    else:
+        # Done with Seller_1, move to Seller_2
+        logger.debug(f"[Day {state['day']}] Seller_1 complete → Seller_2 with Wholesaler")
+        return {
+            "current_negotiation_target": "Seller_2",
+            "current_negotiation_wholesaler": "Wholesaler",
+            "negotiation_status": "seller_2_wholesaler_negotiating"
+        }
 
 
 def update_negotiation_target_seller2(state: EconomicState) -> dict:
-    """Complete negotiations after Seller_2."""
-    logger.debug(f"[Day {state['day']}] Completing negotiations")
-    return {
-        "current_negotiation_target": None,
-        "negotiation_status": "complete"
-    }
+    """Update negotiation: Seller_2 moves to next wholesaler or completes."""
+    current_wholesaler = state.get("current_negotiation_wholesaler")
+
+    if current_wholesaler == "Wholesaler":
+        # Move to Wholesaler_2
+        logger.debug(f"[Day {state['day']}] Seller_2 → Wholesaler_2")
+        return {
+            "current_negotiation_target": "Seller_2",
+            "current_negotiation_wholesaler": "Wholesaler_2",
+            "negotiation_status": "seller_2_wholesaler_2_negotiating"
+        }
+    else:
+        # All negotiations complete
+        logger.debug(f"[Day {state['day']}] All negotiations complete")
+        return {
+            "current_negotiation_target": None,
+            "current_negotiation_wholesaler": None,
+            "negotiation_status": "complete"
+        }
 
 
 def create_simulation_graph() -> StateGraph:

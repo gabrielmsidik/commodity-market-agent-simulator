@@ -292,34 +292,40 @@ def setup_day(state: EconomicState) -> Dict[str, Any]:
 
 @log_node_execution
 def init_negotiation(state: EconomicState) -> Dict[str, Any]:
-    """Initialize negotiation with Seller_1."""
-    logger.debug(f"  → Initializing negotiation with Seller_1")
+    """Initialize negotiation with Seller_1 and Wholesaler."""
+    logger.debug(f"  → Initializing negotiation: Seller_1 ↔ Wholesaler")
     return {
         "current_negotiation_target": "Seller_1",
-        "negotiation_status": "seller_1_negotiating",
+        "current_negotiation_wholesaler": "Wholesaler",
+        "negotiation_status": "seller_1_wholesaler_negotiating",
         "negotiation_history": {
-            "Seller_1": [],
-            "Seller_2": []
+            "Seller_1": {"Wholesaler": [], "Wholesaler_2": []},
+            "Seller_2": {"Wholesaler": [], "Wholesaler_2": []}
         }
     }
 
 
 @log_node_execution
 def wholesaler_make_offer(state: EconomicState) -> Dict[str, Any]:
-    """Wholesaler makes an offer to the current target seller."""
+    """Current wholesaler makes an offer to the current target seller."""
     config = get_config()
+
+    # Determine which wholesaler is active
+    wholesaler_name = state.get("current_negotiation_wholesaler", "Wholesaler")
+    wholesaler_config = config.wholesaler if wholesaler_name == "Wholesaler" else config.wholesaler2
+
     # Create LLM with structured output schema
-    llm = create_agent_llm(config.wholesaler, structured_output_schema=NegotiationResponse)
-    tools = WholesalerTools(state)
+    llm = create_agent_llm(wholesaler_config, structured_output_schema=NegotiationResponse)
+    tools = WholesalerTools(state, agent_name=wholesaler_name)
 
     target_seller = state["current_negotiation_target"]
-    history = state["negotiation_history"][target_seller]
+    history = state["negotiation_history"][target_seller][wholesaler_name]
     round_number = len(history) // 2 + 1
-    scratchpad = state["agent_scratchpads"]["Wholesaler"]
+    scratchpad = state["agent_scratchpads"][wholesaler_name]
     day = state["day"]
 
-    logger.info(f"Wholesaler making offer to {target_seller}")
-    logger.debug(f"  → Wholesaler negotiating with {target_seller}, round {round_number}")
+    logger.info(f"{wholesaler_name} making offer to {target_seller}")
+    logger.debug(f"  → {wholesaler_name} negotiating with {target_seller}, round {round_number}")
 
     # Get tool data
     stats = tools.get_full_market_history(20)
@@ -331,7 +337,7 @@ def wholesaler_make_offer(state: EconomicState) -> Dict[str, Any]:
         logger.info(f"    Previous offer: {last_offer['agent']} offered ${last_offer['price']}/unit for {last_offer['quantity']} units (action: {last_offer['action']})")
 
     # Get economic priors
-    priors = get_economic_priors(state, "Wholesaler", context="negotiation")
+    priors = get_economic_priors(state, wholesaler_name, context="negotiation")
 
     # Build prompt
     prompt = f"""{priors}
@@ -374,7 +380,7 @@ Note: "accept" means you accept their last counteroffer. "reject" ends negotiati
 
     # Create offer
     offer = {
-        "agent": "Wholesaler",
+        "agent": wholesaler_name,
         "price": response.price,
         "quantity": response.quantity,
         "justification": response.justification,
@@ -382,48 +388,52 @@ Note: "accept" means you accept their last counteroffer. "reject" ends negotiati
     }
 
     # Log the offer
-    logger.info(f"    Wholesaler's offer: ${response.price}/unit for {response.quantity} units (action: {response.action})")
+    logger.info(f"    {wholesaler_name}'s offer: ${response.price}/unit for {response.quantity} units (action: {response.action})")
     logger.debug(f"      Justification: {response.justification}")
 
-    # Update history
+    # Update history - use nested structure
     new_history = history + [offer]
-    
+
     return {
         "negotiation_history": {
             **state["negotiation_history"],
-            target_seller: new_history
+            target_seller: {
+                **state["negotiation_history"][target_seller],
+                wholesaler_name: new_history
+            }
         },
         "agent_scratchpads": {
             **state["agent_scratchpads"],
-            "Wholesaler": state["agent_scratchpads"]["Wholesaler"] + scratchpad_update
+            wholesaler_name: state["agent_scratchpads"][wholesaler_name] + scratchpad_update
         }
     }
 
 
 @log_node_execution
 def seller_respond(state: EconomicState) -> Dict[str, Any]:
-    """Seller responds to Wholesaler's offer."""
+    """Seller responds to current Wholesaler's offer."""
     config = get_config()
     seller_name = state["current_negotiation_target"]
-    logger.debug(f"  → {seller_name} responding to Wholesaler's offer")
-    
+    wholesaler_name = state.get("current_negotiation_wholesaler", "Wholesaler")
+    logger.debug(f"  → {seller_name} responding to {wholesaler_name}'s offer")
+
     # Get appropriate config with structured output
     if seller_name == "Seller_1":
         llm = create_agent_llm(config.seller1, structured_output_schema=NegotiationResponse)
     else:
         llm = create_agent_llm(config.seller2, structured_output_schema=NegotiationResponse)
-    
+
     tools = SellerTools(state, seller_name)
-    
-    history = state["negotiation_history"][seller_name]
+
+    history = state["negotiation_history"][seller_name][wholesaler_name]
     last_offer = history[-1]
     round_number = len(history) // 2 + 1
     scratchpad = state["agent_scratchpads"][seller_name]
     day = state["day"]
 
     # Log wholesaler's offer
-    logger.info(f"    Wholesaler's offer to {seller_name}: ${last_offer['price']}/unit for {last_offer['quantity']} units")
-    logger.debug(f"      Wholesaler's justification: {last_offer['justification']}")
+    logger.info(f"    {wholesaler_name}'s offer to {seller_name}: ${last_offer['price']}/unit for {last_offer['quantity']} units")
+    logger.debug(f"      {wholesaler_name}'s justification: {last_offer['justification']}")
 
     # Get tool data
     inv = tools.get_my_inventory()
@@ -443,14 +453,14 @@ Your Recent Sales Stats: {my_stats}
 {scratchpad}
 
 --- NEGOTIATION CONTEXT ---
-Negotiating with: Wholesaler
+Negotiating with: {wholesaler_name}
 Round: {round_number} of 10
-Wholesaler's latest offer: Price ${last_offer['price']} for {last_offer['quantity']} units
+{wholesaler_name}'s latest offer: Price ${last_offer['price']} for {last_offer['quantity']} units
 Their justification: "{last_offer['justification']}"
 Full negotiation history: {json.dumps(history, indent=2)}
 
 --- YOUR TASK ---
-The Wholesaler wants to BUY from you. They have access to global market data that you don't have.
+{wholesaler_name} wants to BUY from you. They have access to global market data that you don't have.
 
 STEP 1: Review the ECONOMIC CONTEXT above - consider time constraints, inventory urgency, and negotiation timing
 STEP 2: Analyze their justification carefully - what market information might they be revealing?
@@ -461,18 +471,18 @@ Provide your response with:
 - scratchpad_update: Concise notes to ADD to your scratchpad - what did you learn?
 - price: Integer price per unit
 - quantity: Units to sell
-- justification: What you tell the wholesaler about why this price is fair
+- justification: What you tell {wholesaler_name} about why this price is fair
 - action: "offer", "accept", or "reject"
 
 IMPORTANT: Your scratchpad should be concise. Only add NEW insights you learned.
 Note: "accept" means you accept their offer. "reject" ends negotiation.
-The Wholesaler has superior market data - try to learn from what they reveal!"""
+The wholesaler has superior market data - try to learn from what they reveal!"""
 
     # Call LLM with structured output - returns NegotiationResponse object
     response: NegotiationResponse = llm.invoke(prompt)
 
     # Update scratchpad
-    scratchpad_update = f"\n[Day {day}, W negotiation]: {response.scratchpad_update}"
+    scratchpad_update = f"\n[Day {day}, {wholesaler_name} negotiation]: {response.scratchpad_update}"
 
     # Create response
     offer = {
@@ -487,13 +497,16 @@ The Wholesaler has superior market data - try to learn from what they reveal!"""
     logger.info(f"    {seller_name}'s response: ${response.price}/unit for {response.quantity} units (action: {response.action})")
     logger.debug(f"      Justification: {response.justification}")
 
-    # Update history
+    # Update history - use nested structure
     new_history = history + [offer]
-    
+
     return {
         "negotiation_history": {
             **state["negotiation_history"],
-            seller_name: new_history
+            seller_name: {
+                **state["negotiation_history"][seller_name],
+                wholesaler_name: new_history
+            }
         },
         "agent_scratchpads": {
             **state["agent_scratchpads"],
