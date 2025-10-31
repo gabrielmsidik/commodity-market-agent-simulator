@@ -297,12 +297,30 @@ class SimulationRunner:
                                     history = value
                                     if history:
                                         summary = {}
-                                        for seller, rounds in history.items():
-                                            if rounds:
-                                                # Only show the latest round (live negotiation)
-                                                latest = rounds[-1]
+                                        for seller, wholesalers in history.items():
+                                            if isinstance(wholesalers, dict):
+                                                # New nested structure: {Seller: {Wholesaler: [], Wholesaler_2: []}}
+                                                seller_summary = {}
+                                                for wholesaler, rounds in wholesalers.items():
+                                                    if rounds:
+                                                        latest = rounds[-1]
+                                                        seller_summary[wholesaler] = {
+                                                            "total_rounds": len(rounds),
+                                                            "latest_offer": {
+                                                                "agent": latest["agent"],
+                                                                "price": latest["price"],
+                                                                "quantity": latest["quantity"],
+                                                                "action": latest["action"]
+                                                            }
+                                                        }
+                                                    else:
+                                                        seller_summary[wholesaler] = {"total_rounds": 0}
+                                                summary[seller] = seller_summary
+                                            elif wholesalers:
+                                                # Old flat structure (backward compatibility)
+                                                latest = wholesalers[-1]
                                                 summary[seller] = {
-                                                    "total_rounds": len(rounds),
+                                                    "total_rounds": len(wholesalers),
                                                     "latest_offer": {
                                                         "agent": latest["agent"],
                                                         "price": latest["price"],

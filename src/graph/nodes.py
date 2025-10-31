@@ -517,16 +517,17 @@ The wholesaler has superior market data - try to learn from what they reveal!"""
 
 @log_node_execution
 def execute_trade(state: EconomicState) -> Dict[str, Any]:
-    """Execute a negotiated trade between Wholesaler and Seller."""
+    """Execute a negotiated trade between current Wholesaler and Seller."""
     seller_name = state["current_negotiation_target"]
-    history = state["negotiation_history"][seller_name]
+    wholesaler_name = state.get("current_negotiation_wholesaler", "Wholesaler")
+    history = state["negotiation_history"][seller_name][wholesaler_name]
 
     # Get the accepted offer (last one should be accept action)
     last_offer = history[-1]
 
     # Find the offer that was accepted
     if last_offer["action"] == "accept":
-        if last_offer["agent"] == "Wholesaler":
+        if last_offer["agent"] in ["Wholesaler", "Wholesaler_2"]:
             # Wholesaler accepted seller's offer
             accepted_offer = history[-2]
         else:
@@ -540,12 +541,12 @@ def execute_trade(state: EconomicState) -> Dict[str, Any]:
     quantity = accepted_offer["quantity"]
     total_value = price * quantity
 
-    logger.info(f"  → TRADE EXECUTED: Wholesaler buys {quantity} units from {seller_name} at ${price}/unit (Total: ${total_value})")
+    logger.info(f"  → TRADE EXECUTED: {wholesaler_name} buys {quantity} units from {seller_name} at ${price}/unit (Total: ${total_value})")
     logger.debug(f"      Accepted offer from: {accepted_offer['agent']}")
 
     # Update ledgers
     seller_ledger = state["agent_ledgers"][seller_name]
-    wholesaler_ledger = state["agent_ledgers"]["Wholesaler"]
+    wholesaler_ledger = state["agent_ledgers"][wholesaler_name]
 
     new_seller_ledger = {
         **seller_ledger,
@@ -564,7 +565,7 @@ def execute_trade(state: EconomicState) -> Dict[str, Any]:
     # Log the wholesale trade
     wholesale_trade = {
         "day": state["day"],
-        "buyer": "Wholesaler",
+        "buyer": wholesaler_name,
         "seller": seller_name,
         "price": price,
         "quantity": quantity,
@@ -576,7 +577,7 @@ def execute_trade(state: EconomicState) -> Dict[str, Any]:
         "agent_ledgers": {
             **state["agent_ledgers"],
             seller_name: new_seller_ledger,
-            "Wholesaler": new_wholesaler_ledger
+            wholesaler_name: new_wholesaler_ledger
         },
         "wholesale_trades_log": [wholesale_trade]
     }
@@ -641,6 +642,57 @@ You may want to hold back inventory for subsequent days."""
     }
 
     wholesaler_scratchpad_update = f"\n[Day {day} pricing]: {wholesaler_response.scratchpad_update}"
+
+    # Wholesaler_2 sets offer
+    wholesaler2_llm = create_agent_llm(config.wholesaler2, structured_output_schema=MarketOfferResponse)
+    wholesaler2_tools = WholesalerTools(state, agent_name="Wholesaler_2")
+
+    w2_rec = wholesaler2_tools.get_profit_maximizing_price()
+    w2_stats = wholesaler2_tools.get_full_market_demand_stats()
+    w2_inv = wholesaler2_tools.get_my_inventory()
+    w2_scratchpad = state["agent_scratchpads"]["Wholesaler_2"]
+
+    # Get economic priors
+    wholesaler2_priors = get_economic_priors(state, "Wholesaler_2", context="pricing")
+
+    wholesaler2_prompt = f"""{wholesaler2_priors}
+
+--- YOUR PRIVATE DATA (From Tools) ---
+- Current Day: {day} of {state['num_days']}
+- Your Current Inventory: {w2_inv['inventory']} units
+- Market Analytics: {w2_stats}
+- Your Estimated Profit-Maximizing Price: {w2_rec}
+
+--- YOUR SCRATCHPAD (Private Notes) ---
+{w2_scratchpad}
+
+--- YOUR TASK ---
+Set your daily market price and quantity for today.
+
+STEP 1: Review the ECONOMIC CONTEXT above - consider time remaining and inventory urgency
+STEP 2: Review your scratchpad - what have you learned from negotiations and past sales?
+STEP 3: Analyze current market conditions and your inventory position.
+STEP 4: Decide on price and quantity strategy.
+
+Provide your response with:
+- scratchpad_update: Concise notes to ADD - any new insights
+- price: Integer price per unit
+- quantity: Units to offer
+- reasoning: Brief explanation of your strategy
+
+IMPORTANT: Your scratchpad should be concise. Only add NEW, actionable insights.
+You may want to hold back inventory for subsequent days."""
+
+    wholesaler2_response: MarketOfferResponse = wholesaler2_llm.invoke(wholesaler2_prompt)
+
+    offers["Wholesaler_2"] = {
+        "agent_name": "Wholesaler_2",
+        "price": wholesaler2_response.price,
+        "quantity": min(wholesaler2_response.quantity, w2_inv["inventory"]),
+        "inventory_available": w2_inv["inventory"]
+    }
+
+    wholesaler2_scratchpad_update = f"\n[Day {day} pricing]: {wholesaler2_response.scratchpad_update}"
 
     # Seller 1 sets offer
     seller1_llm = create_agent_llm(config.seller1, structured_output_schema=MarketOfferResponse)
@@ -747,6 +799,7 @@ Remember: The Wholesaler has more market information than you. Use what you lear
         "daily_market_offers": offers,
         "agent_scratchpads": {
             "Wholesaler": state["agent_scratchpads"]["Wholesaler"] + wholesaler_scratchpad_update,
+            "Wholesaler_2": state["agent_scratchpads"]["Wholesaler_2"] + wholesaler2_scratchpad_update,
             "Seller_1": state["agent_scratchpads"]["Seller_1"] + seller1_scratchpad_update,
             "Seller_2": state["agent_scratchpads"]["Seller_2"] + seller2_scratchpad_update
         }

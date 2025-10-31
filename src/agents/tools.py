@@ -10,9 +10,9 @@ class WholesalerTools:
     Has access to global market data.
     """
     
-    def __init__(self, state: EconomicState):
+    def __init__(self, state: EconomicState, agent_name: str = "Wholesaler"):
         self.state = state
-        self.agent_name = "Wholesaler"
+        self.agent_name = agent_name
     
     def get_my_inventory(self) -> Dict[str, Any]:
         """Get current inventory level."""

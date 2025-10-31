@@ -179,11 +179,18 @@ def create_simulation_graph() -> StateGraph:
         }
     )
 
-    # After updating target from Seller_1, start Seller_2 negotiation
+    # After updating target from Seller_1, continue negotiating
     graph.add_edge("update_target_seller1", "wholesaler_make_offer")
 
-    # After updating target from Seller_2, go to market
-    graph.add_edge("update_target_seller2", "set_market_offers")
+    # After updating target from Seller_2, check if more negotiations needed or go to market
+    graph.add_conditional_edges(
+        "update_target_seller2",
+        lambda state: "wholesaler_make_offer" if state["negotiation_status"] != "complete" else "set_market_offers",
+        {
+            "wholesaler_make_offer": "wholesaler_make_offer",
+            "set_market_offers": "set_market_offers"
+        }
+    )
 
     graph.add_edge("set_market_offers", "run_market_simulation")
     # Apply daily depreciation after market clears
