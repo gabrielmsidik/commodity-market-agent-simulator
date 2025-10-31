@@ -36,6 +36,8 @@ def run_simulation_async(job_id: str, config_dict: Dict[str, Any]):
         # Create config from dictionary
         config = SimulationConfig(**config_dict)
 
+        logger.info(f"Starting simulation {job_id} with config: {config}")
+
         # Run simulation
         runner = SimulationRunner(config, log_level=logging.INFO)
         result = runner.run()
