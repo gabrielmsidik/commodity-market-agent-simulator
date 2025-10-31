@@ -65,6 +65,22 @@ def get_economic_priors(state: EconomicState, agent_name: str, context: str = "g
     inventory = ledger.get("inventory", 0)
 
     # Build priors string
+    sim_config = state["config"]  # Get SimulationConfig from state
+
+    # Calculate transport cost info for sellers
+    transport_cost_info = ""
+    if sim_config.transport_cost_enabled and agent_name in ["Seller_1", "Seller_2"]:
+        transport_cost_info = f"""
+TRANSPORTATION COSTS (CRITICAL):
+- Transport Cost: ${sim_config.transport_cost_per_unit}/unit for EACH UNIT you bring to market
+- ⚠️ Transport costs are ONLY charged for inventory you choose to bring to market
+- 💡 STRATEGY: Bring less inventory to market = lower transport costs
+- 💡 STRATEGY: Selling to the Wholesaler AVOIDS transport costs entirely!
+- 💡 STRATEGY: The more inventory you sell to Wholesaler, the lower your daily transport costs
+- 📊 Example: If you bring 50 units to market, you pay ${50 * sim_config.transport_cost_per_unit} in transport costs
+- 📊 Example: If you bring 0 units to market, you pay $0 in transport costs
+"""
+
     priors = f"""
 === ECONOMIC CONTEXT & CONSTRAINTS ===
 
@@ -77,7 +93,7 @@ CRITICAL TIME CONSTRAINTS:
 MARKET FUNDAMENTALS:
 - Typical Market Price Range: $80-$110 per unit (shoppers' willingness to pay)
 - Average Market Price: ~$95 per unit
-- Sellers' Production Costs: $58-$72 per unit (varies by seller)
+- Sellers' Production Costs: $58-$72 per unit (varies by seller){transport_cost_info}
 """
 
     # Add negotiation-specific priors
@@ -232,7 +248,18 @@ def setup_day(state: EconomicState) -> Dict[str, Any]:
     else:
         logger.debug(f"  → Created daily shopper pool: 0 demand units (no active shoppers)")
 
-    return {"daily_shopper_pool": new_daily_shopper_pool}
+    # ========================================================================
+    # NOTE: Transport costs are now calculated in set_market_offers AFTER sellers decide
+    # how much inventory to bring to market. This way, costs only apply to inventory
+    # that sellers choose to bring, not their total inventory.
+    daily_transport_costs = {}
+    daily_transport_costs["Wholesaler"] = 0.0  # Wholesaler is exempt from transport costs
+
+    return {
+        "daily_shopper_pool": new_daily_shopper_pool,
+        "daily_transport_costs": daily_transport_costs,
+        "agent_ledgers": state["agent_ledgers"]
+    }
 
 
 @log_node_execution
@@ -252,9 +279,11 @@ def init_negotiation(state: EconomicState) -> Dict[str, Any]:
 @log_node_execution
 def wholesaler_make_offer(state: EconomicState) -> Dict[str, Any]:
     """Wholesaler makes an offer to the current target seller."""
-    config = get_config()
+    app_config = get_config()  # AppConfig for agent configuration
+    sim_config = state["config"]  # SimulationConfig for simulation parameters
+
     # Create LLM with structured output schema
-    llm = create_agent_llm(config.wholesaler, structured_output_schema=NegotiationResponse)
+    llm = create_agent_llm(app_config.wholesaler, structured_output_schema=NegotiationResponse)
     tools = WholesalerTools(state)
 
     target_seller = state["current_negotiation_target"]
@@ -305,13 +334,22 @@ Negotiating with: {target_seller}
 Round: {round_number} of 10
 Previous offers in this negotiation: {json.dumps(history, indent=2)}
 
+--- YOUR NEGOTIATION LEVERAGE ---
+💡 KEY INSIGHT: {target_seller} faces daily transport costs of ${sim_config.transport_cost_per_unit}/unit on normal market days
+💡 If they don't sell to you today, they'll incur significant transport costs for remaining days
+    In addition, consider low-balling the sellers as you are acutely aware that they can only rely upon you to get capital to finance their transport.
+    You can effectively control the competition on other market days by limiting the ability for them to come to the marketplace.
+💡 This is negotiation day {state['config'].negotiation_days.index(state['day']) + 1 if state['day'] in state['config'].negotiation_days else '?'} - if they fail to reach a deal, they may not afford to bring inventory to market
+🎯 STRATEGIC ADVANTAGE: Use this knowledge to negotiate better prices - they're under pressure!
+
 --- YOUR TASK ---
 You are negotiating to BUY inventory from {target_seller}.
 
 STEP 1: Review the ECONOMIC CONTEXT above - consider time constraints, negotiation limits, and market fundamentals
-STEP 2: Review your scratchpad and current data. What insights are relevant?
-STEP 3: Decide on your negotiation strategy for this round.
-STEP 4: Make your offer or respond to their counteroffer.
+STEP 2: Consider your negotiation leverage - {target_seller} faces transport cost pressure
+STEP 3: Review your scratchpad and current data. What insights are relevant?
+STEP 4: Decide on your negotiation strategy for this round.
+STEP 5: Make your offer or respond to their counteroffer.
 
 Provide your response with:
 - scratchpad_update: Concise notes to ADD to your scratchpad
@@ -321,7 +359,14 @@ Provide your response with:
 - action: "offer", "accept", or "reject"
 
 IMPORTANT: Your scratchpad should be concise. Only add NEW, actionable information.
-Note: "accept" means you accept their last counteroffer. "reject" ends negotiation."""
+Note: "accept" means you accept their last counteroffer. "reject" ends negotiation.
+
+Note that as the Wholesaler - you have access to global market data that the sellers do not, the sellers are often attempting to gain market information from you in the negotiations.
+
+Be careful what you reveal in your justifications, along with the prices that you suggest to them.
+Start negotiations at below the cost price of the seller to maximise leverage
+
+"""
 
     # Call LLM with structured output - returns NegotiationResponse object
     response: NegotiationResponse = llm.invoke(prompt)
@@ -360,15 +405,17 @@ Note: "accept" means you accept their last counteroffer. "reject" ends negotiati
 @log_node_execution
 def seller_respond(state: EconomicState) -> Dict[str, Any]:
     """Seller responds to Wholesaler's offer."""
-    config = get_config()
+    app_config = get_config()  # AppConfig for agent configuration
+    sim_config = state["config"]  # SimulationConfig for simulation parameters
+
     seller_name = state["current_negotiation_target"]
     logger.debug(f"  → {seller_name} responding to Wholesaler's offer")
-    
+
     # Get appropriate config with structured output
     if seller_name == "Seller_1":
-        llm = create_agent_llm(config.seller1, structured_output_schema=NegotiationResponse)
+        llm = create_agent_llm(app_config.seller1, structured_output_schema=NegotiationResponse)
     else:
-        llm = create_agent_llm(config.seller2, structured_output_schema=NegotiationResponse)
+        llm = create_agent_llm(app_config.seller2, structured_output_schema=NegotiationResponse)
     
     tools = SellerTools(state, seller_name)
     
@@ -390,6 +437,43 @@ def seller_respond(state: EconomicState) -> Dict[str, Any]:
     ledger = state["agent_ledgers"][seller_name]
     pnl = calculate_pnl(ledger)
     cost_per_unit = ledger['cost_per_unit']
+
+    # INVENTORY CHECK: If seller has zero inventory, automatically reject
+    wholesaler_quantity_requested = last_offer['quantity']
+    available_inventory = ledger['inventory']
+    if available_inventory == 0:
+        logger.warning(f"  ⚠️  {seller_name} has NO inventory remaining. Auto-rejecting Wholesaler's offer.")
+        auto_reject_offer = {
+            "agent": seller_name,
+            "price": 0,
+            "quantity": 0,
+            "justification": "Cannot fulfill order - inventory is completely exhausted.",
+            "action": "reject"
+        }
+        new_history = history + [auto_reject_offer]
+        logger.info(f"    {seller_name}'s response: REJECTED (no inventory)")
+        return {
+            "negotiation_history": {
+                **state["negotiation_history"],
+                seller_name: new_history
+            },
+            "agent_scratchpads": {
+                **state["agent_scratchpads"],
+                seller_name: state["agent_scratchpads"][seller_name] + f"\n[Day {day}, W negotiation]: Auto-rejected Wholesaler offer - no inventory remaining."
+            }
+        }
+
+    # INVENTORY CONSTRAINT: If seller has insufficient inventory, add constraint to prompt
+    inventory_constraint_note = ""
+    if available_inventory < wholesaler_quantity_requested:
+        inventory_constraint_note = f"""
+⚠️ INVENTORY CONSTRAINT:
+- Wholesaler requested: {wholesaler_quantity_requested} units
+- You only have: {available_inventory} units available
+- You CANNOT sell more than {available_inventory} units
+- Consider counter-proposing with your available inventory instead of rejecting
+"""
+        logger.info(f"  ℹ️  {seller_name} has limited inventory ({available_inventory} units) for Wholesaler's request ({wholesaler_quantity_requested} units). Will inform LLM to counter-propose.")
 
     # Get economic priors
     priors = get_economic_priors(state, seller_name, context="negotiation")
@@ -421,13 +505,22 @@ Wholesaler's latest offer: Price ${last_offer['price']} for {last_offer['quantit
 Their justification: "{last_offer['justification']}"
 Full negotiation history: {json.dumps(history, indent=2)}
 
+--- TRANSPORT COST URGENCY ---
+💰 Daily Transport Costs: ${sim_config.transport_cost_per_unit}/unit × {ledger['inventory']} units = ${ledger['inventory'] * sim_config.transport_cost_per_unit}/day
+⚠️ If you DON'T sell to Wholesaler today, you'll incur ${ledger['inventory'] * sim_config.transport_cost_per_unit}/day in transport costs
+💡 Every unit you sell to Wholesaler SAVES you ${sim_config.transport_cost_per_unit} in daily transport costs
+🚨 This is negotiation day {state['config'].negotiation_days.index(state['day']) + 1 if state['day'] in state['config'].negotiation_days else '?'} - if you fail to reach a deal, you CANNOT afford to bring inventory to market!
+
+{inventory_constraint_note}
+
 --- YOUR TASK ---
 The Wholesaler wants to BUY from you. They have access to global market data that you don't have.
 
 STEP 1: Review the ECONOMIC CONTEXT above - consider time constraints, inventory urgency, and negotiation timing
-STEP 2: Analyze their justification carefully - what market information might they be revealing?
-STEP 3: Review your scratchpad - what patterns have you noticed?
-STEP 4: Decide whether to accept, reject, or counteroffer.
+STEP 2: Consider the transport cost urgency - selling to Wholesaler saves you significant daily costs
+STEP 3: Analyze their justification carefully - what market information might they be revealing?
+STEP 4: Review your scratchpad - what patterns have you noticed?
+STEP 5: Decide whether to accept, reject, or counteroffer.
 
 Provide your response with:
 - scratchpad_update: Concise notes to ADD to your scratchpad - what did you learn?
@@ -497,19 +590,22 @@ def execute_trade(state: EconomicState) -> Dict[str, Any]:
 
     price = accepted_offer["price"]
     quantity = accepted_offer["quantity"]
-    total_value = price * quantity
-
-    logger.info(f"  → TRADE EXECUTED: Wholesaler buys {quantity} units from {seller_name} at ${price}/unit (Total: ${total_value})")
-    logger.debug(f"      Accepted offer from: {accepted_offer['agent']}")
 
     # Update ledgers
     seller_ledger = state["agent_ledgers"][seller_name]
     wholesaler_ledger = state["agent_ledgers"]["Wholesaler"]
 
-    # VALIDATION: Ensure seller has enough inventory (prevent overselling)
-    if seller_ledger["inventory"] < quantity:
-        logger.error(f"  ❌ OVERSELLING DETECTED in execute_trade: {seller_name} has {seller_ledger['inventory']} units but trying to sell {quantity}!")
-        raise ValueError(f"Overselling in wholesale trade: {seller_name} inventory {seller_ledger['inventory']} < quantity {quantity}")
+    # VALIDATION: Ensure seller has enough inventory
+    # (This should be guaranteed by seller_respond's inventory check, but verify as safety measure)
+    available_inventory = seller_ledger["inventory"]
+    if available_inventory < quantity:
+        logger.error(f"  ❌ CRITICAL: {seller_name} has {available_inventory} units but accepted trade for {quantity} units!")
+        logger.error(f"      This should have been caught in seller_respond. Rejecting trade.")
+        return {}
+
+    total_value = price * quantity
+    logger.info(f"  → TRADE EXECUTED: Wholesaler buys {quantity} units from {seller_name} at ${price}/unit (Total: ${total_value})")
+    logger.debug(f"      Accepted offer from: {accepted_offer['agent']}")
 
     new_seller_ledger = {
         **seller_ledger,
@@ -598,6 +694,9 @@ STEP 2: Review your scratchpad - what have you learned from negotiations and pas
 STEP 3: Analyze current market conditions and your inventory position.
 STEP 4: Decide on price and quantity strategy.
 
+Take into careful attention as well previous trades. Take into account the fact that when sellers bring inventory to sell, they have to pay transportation costs.
+It maybe good to keep careful attention on the cash amount that sellers have available, as keeping their cash amount low would mean that they cannot bring inventory to sell, forcing them to sell to you cheaply at the next negotiation.
+
 Provide your response with:
 - scratchpad_update: Concise notes to ADD - any new insights
 - price: Integer price per unit
@@ -631,8 +730,31 @@ You may want to hold back inventory for subsequent days."""
     seller1_pnl = calculate_pnl(seller1_ledger)
     s1_cost = seller1_ledger['cost_per_unit']
 
+    # Check cash constraint for Seller_1
+    s1_can_participate = seller1_ledger["cash"] >= 0
+    if not s1_can_participate:
+        logger.warning(f"  ⚠️ Seller_1 cannot participate in market today - cash is negative (${seller1_ledger['cash']:.2f})")
+
     # Get economic priors
     seller1_priors = get_economic_priors(state, "Seller_1", context="pricing")
+
+    # Add cash constraint warning if applicable
+    cash_constraint_msg = ""
+    if not s1_can_participate:
+        cash_constraint_msg = "\n⚠️ CRITICAL: Your cash is negative! You CANNOT participate in the market today.\nYou must wait until the next negotiation day to recover."
+
+    # Get transport cost info for this seller
+    sim_config = state["config"]
+    transport_cost_info_s1 = ""
+    if sim_config.transport_cost_enabled:
+        transport_cost_info_s1 = f"""
+--- TRANSPORT COSTS (IMPORTANT) ---
+💰 Transport Cost: ${sim_config.transport_cost_per_unit}/unit for each unit you bring to market
+⚠️ Transport costs are ONLY charged for inventory you choose to bring to market today
+💡 STRATEGY: Bring less inventory to market = lower transport costs
+💡 STRATEGY: Sell to Wholesaler = NO transport costs (they handle transport)
+📊 Example: If you bring 50 units to market, you pay ${50 * sim_config.transport_cost_per_unit} in transport costs today
+📊 Example: If you bring 0 units to market, you pay $0 in transport costs today"""
 
     seller1_prompt = f"""{seller1_priors}
 
@@ -642,10 +764,10 @@ You may want to hold back inventory for subsequent days."""
    - Total Costs (COGS): ${seller1_ledger['total_cost_incurred']:,.2f}
    - Your Production Cost: ${s1_cost}/unit
    - Cash Available: ${seller1_ledger['cash']:,.2f}
-   - Inventory: {seller1_ledger['inventory']} units
+   - Inventory: {seller1_ledger['inventory']} units{cash_constraint_msg}
 
  YOUR GOAL: Maximize PnL by end of Day {state['num_days']}
- BREAK-EVEN PRICE: ${s1_cost}/unit (sell below this = loss!)
+ BREAK-EVEN PRICE: ${s1_cost}/unit (sell below this = loss!){transport_cost_info_s1}
 
 --- YOUR PRIVATE DATA (From Tools) ---
 - Current Day: {day} of {state['num_days']}
@@ -658,14 +780,15 @@ You may want to hold back inventory for subsequent days."""
 Set your daily market price and quantity for today.
 
 STEP 1: Review the ECONOMIC CONTEXT above - consider time remaining and inventory urgency
-STEP 2: Review your scratchpad - what have you learned from negotiations with the Wholesaler?
-STEP 3: Analyze your recent sales performance and inventory.
-STEP 4: Decide on price and quantity strategy.
+STEP 2: Review transport costs - decide how much inventory to bring to market
+STEP 3: Review your scratchpad - what have you learned from negotiations with the Wholesaler?
+STEP 4: Analyze your recent sales performance and inventory.
+STEP 5: Decide on price and quantity strategy.
 
 Provide your response with:
 - scratchpad_update: Concise notes to ADD - any new insights
 - price: Integer price per unit
-- quantity: Units to offer
+- quantity: Units to bring to market today (transport costs apply to this quantity)
 - reasoning: Brief explanation of your strategy
 
 IMPORTANT: Your scratchpad should be concise. Only add NEW, actionable insights.
@@ -673,10 +796,37 @@ Remember: The Wholesaler has more market information than you. Use what you lear
 
     seller1_response: MarketOfferResponse = seller1_llm.invoke(seller1_prompt)
 
+    # Enforce cash constraint: if cash is negative, seller cannot participate
+    s1_quantity = 0 if not s1_can_participate else min(seller1_response.quantity, s1_inv["inventory"])
+
+    # TRANSPORT COSTS: Calculate transport cost based on quantity seller wants to bring to market
+    s1_transport_cost = 0
+    if sim_config.transport_cost_enabled and s1_quantity > 0:
+        s1_transport_cost = s1_quantity * sim_config.transport_cost_per_unit
+
+        # Check if seller can afford the transport cost
+        if seller1_ledger["cash"] - s1_transport_cost < 0:
+            logger.warning(f"  ⚠️ Seller_1 cannot afford transport costs for {s1_quantity} units (${s1_transport_cost}). Reducing quantity.")
+            # Reduce quantity to what they can afford
+            max_affordable_quantity = seller1_ledger["cash"] // sim_config.transport_cost_per_unit
+            s1_quantity = min(s1_quantity, max_affordable_quantity)
+            s1_transport_cost = s1_quantity * sim_config.transport_cost_per_unit
+            logger.info(f"  → Seller_1 adjusted quantity to {s1_quantity} units (can afford ${s1_transport_cost} transport cost)")
+
+        # Deduct transport cost from seller's cash
+        seller1_ledger = {
+            **seller1_ledger,
+            "cash": seller1_ledger["cash"] - s1_transport_cost,
+            "daily_transport_cost": s1_transport_cost,
+            "total_transport_costs": seller1_ledger["total_transport_costs"] + s1_transport_cost
+        }
+        state["agent_ledgers"]["Seller_1"] = seller1_ledger
+        logger.info(f"  → Seller_1 transport costs: ${s1_transport_cost} (bringing {s1_quantity} units to market)")
+
     offers["Seller_1"] = {
         "agent_name": "Seller_1",
         "price": seller1_response.price,
-        "quantity": min(seller1_response.quantity, s1_inv["inventory"]),
+        "quantity": s1_quantity,
         "inventory_available": s1_inv["inventory"]
     }
 
@@ -698,8 +848,30 @@ Remember: The Wholesaler has more market information than you. Use what you lear
     seller2_pnl = calculate_pnl(seller2_ledger)
     s2_cost = seller2_ledger['cost_per_unit']
 
+    # Check cash constraint for Seller_2
+    s2_can_participate = seller2_ledger["cash"] >= 0
+    if not s2_can_participate:
+        logger.warning(f"  ⚠️ Seller_2 cannot participate in market today - cash is negative (${seller2_ledger['cash']:.2f})")
+
     # Get economic priors
     seller2_priors = get_economic_priors(state, "Seller_2", context="pricing")
+
+    # Add cash constraint warning if applicable
+    s2_cash_constraint_msg = ""
+    if not s2_can_participate:
+        s2_cash_constraint_msg = "\n⚠️ CRITICAL: Your cash is negative! You CANNOT participate in the market today.\nYou must wait until the next negotiation day to recover."
+
+    # Get transport cost info for this seller
+    transport_cost_info_s2 = ""
+    if sim_config.transport_cost_enabled:
+        transport_cost_info_s2 = f"""
+--- TRANSPORT COSTS (IMPORTANT) ---
+💰 Transport Cost: ${sim_config.transport_cost_per_unit}/unit for each unit you bring to market
+⚠️ Transport costs are ONLY charged for inventory you choose to bring to market today
+💡 STRATEGY: Bring less inventory to market = lower transport costs
+💡 STRATEGY: Sell to Wholesaler = NO transport costs (they handle transport)
+📊 Example: If you bring 50 units to market, you pay ${50 * sim_config.transport_cost_per_unit} in transport costs today
+📊 Example: If you bring 0 units to market, you pay $0 in transport costs today"""
 
     seller2_prompt = f"""{seller2_priors}
 
@@ -709,10 +881,10 @@ Remember: The Wholesaler has more market information than you. Use what you lear
    - Total Costs (COGS): ${seller2_ledger['total_cost_incurred']:,.2f}
    - Your Production Cost: ${s2_cost}/unit
    - Cash Available: ${seller2_ledger['cash']:,.2f}
-   - Inventory: {seller2_ledger['inventory']} units
+   - Inventory: {seller2_ledger['inventory']} units{s2_cash_constraint_msg}
 
  YOUR GOAL: Maximize PnL by end of Day {state['num_days']}
- BREAK-EVEN PRICE: ${s2_cost}/unit (sell below this = loss!)
+ BREAK-EVEN PRICE: ${s2_cost}/unit (sell below this = loss!){transport_cost_info_s2}
 
 --- YOUR PRIVATE DATA (From Tools) ---
 - Current Day: {day} of {state['num_days']}
@@ -725,14 +897,15 @@ Remember: The Wholesaler has more market information than you. Use what you lear
 Set your daily market price and quantity for today.
 
 STEP 1: Review the ECONOMIC CONTEXT above - consider time remaining and inventory urgency
-STEP 2: Review your scratchpad - what have you learned from negotiations with the Wholesaler?
-STEP 3: Analyze your recent sales performance and inventory.
-STEP 4: Decide on price and quantity strategy.
+STEP 2: Review transport costs - decide how much inventory to bring to market
+STEP 3: Review your scratchpad - what have you learned from negotiations with the Wholesaler?
+STEP 4: Analyze your recent sales performance and inventory.
+STEP 5: Decide on price and quantity strategy.
 
 Provide your response with:
 - scratchpad_update: Concise notes to ADD - any new insights
 - price: Integer price per unit
-- quantity: Units to offer
+- quantity: Units to bring to market today (transport costs apply to this quantity)
 - reasoning: Brief explanation of your strategy
 
 IMPORTANT: Your scratchpad should be concise. Only add NEW, actionable insights.
@@ -740,10 +913,37 @@ Remember: The Wholesaler has more market information than you. Use what you lear
 
     seller2_response: MarketOfferResponse = seller2_llm.invoke(seller2_prompt)
 
+    # Enforce cash constraint: if cash is negative, seller cannot participate
+    s2_quantity = 0 if not s2_can_participate else min(seller2_response.quantity, s2_inv["inventory"])
+
+    # TRANSPORT COSTS: Calculate transport cost based on quantity seller wants to bring to market
+    s2_transport_cost = 0
+    if sim_config.transport_cost_enabled and s2_quantity > 0:
+        s2_transport_cost = s2_quantity * sim_config.transport_cost_per_unit
+
+        # Check if seller can afford the transport cost
+        if seller2_ledger["cash"] - s2_transport_cost < 0:
+            logger.warning(f"  ⚠️ Seller_2 cannot afford transport costs for {s2_quantity} units (${s2_transport_cost}). Reducing quantity.")
+            # Reduce quantity to what they can afford
+            max_affordable_quantity = seller2_ledger["cash"] // sim_config.transport_cost_per_unit
+            s2_quantity = min(s2_quantity, max_affordable_quantity)
+            s2_transport_cost = s2_quantity * sim_config.transport_cost_per_unit
+            logger.info(f"  → Seller_2 adjusted quantity to {s2_quantity} units (can afford ${s2_transport_cost} transport cost)")
+
+        # Deduct transport cost from seller's cash
+        seller2_ledger = {
+            **seller2_ledger,
+            "cash": seller2_ledger["cash"] - s2_transport_cost,
+            "daily_transport_cost": s2_transport_cost,
+            "total_transport_costs": seller2_ledger["total_transport_costs"] + s2_transport_cost
+        }
+        state["agent_ledgers"]["Seller_2"] = seller2_ledger
+        logger.info(f"  → Seller_2 transport costs: ${s2_transport_cost} (bringing {s2_quantity} units to market)")
+
     offers["Seller_2"] = {
         "agent_name": "Seller_2",
         "price": seller2_response.price,
-        "quantity": min(seller2_response.quantity, s2_inv["inventory"]),
+        "quantity": s2_quantity,
         "inventory_available": s2_inv["inventory"]
     }
 
@@ -960,13 +1160,19 @@ def run_market_simulation(state: EconomicState) -> Dict[str, Any]:
             price = offers[agent_name]["price"]
             revenue = qty * price
 
-            # Log individual agent sales
-            logger.info(f"    {agent_name} sold {qty} units at ${price}/unit (Revenue: ${revenue})")
+            # SAFETY CHECK: Cap quantity to available inventory (should not happen in normal flow)
+            actual_qty = min(qty, ledger["inventory"])
+            if actual_qty < qty:
+                logger.warning(f"  ⚠️  {agent_name} offered {qty} units but only has {ledger['inventory']} available. Capping to {actual_qty} units.")
+                qty = actual_qty
 
-            # VALIDATION: Ensure agent has enough inventory before decrement (prevent overselling)
-            if ledger["inventory"] < qty:
-                logger.error(f"  ❌ OVERSELLING DETECTED in run_market_simulation: {agent_name} has {ledger['inventory']} units but trying to sell {qty}!")
-                raise ValueError(f"Overselling in market simulation: {agent_name} inventory {ledger['inventory']} < quantity {qty}")
+            # Skip if no inventory to sell
+            if qty <= 0:
+                logger.debug(f"    {agent_name} has no inventory to sell (0 units)")
+                continue
+
+            revenue = qty * price
+            logger.info(f"    {agent_name} sold {qty} units at ${price}/unit (Revenue: ${revenue})")
 
             # DEBUG: Log Seller_2 inventory changes
             if agent_name == "Seller_2":

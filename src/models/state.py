@@ -25,6 +25,8 @@ class AgentLedger(TypedDict):
     total_cost_incurred: float
     total_revenue: float
     private_sales_log: List[Dict]
+    total_transport_costs: float  # Cumulative transport costs incurred
+    daily_transport_cost: float  # Transport cost for current day (informational)
 
 
 class MarketOffer(TypedDict):
@@ -69,6 +71,7 @@ class EconomicState(TypedDict):
     # Daily state (reset each day)
     daily_shopper_pool: List[ShopperPoolEntry]
     daily_market_offers: Dict[str, MarketOffer]
+    daily_transport_costs: Dict[str, float]  # Transport costs by agent for current day
 
     # Agent state (persistent)
     agent_ledgers: Dict[str, AgentLedger]

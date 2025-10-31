@@ -139,21 +139,62 @@ class SellerTools:
         ledger = self.state["agent_ledgers"][self.agent_name]
         sales_log = ledger["private_sales_log"]
         recent_sales = sales_log[-days:] if len(sales_log) > 0 else []
-        
+
         if not recent_sales:
             return {
                 "my_avg_sale_price": None,
                 "my_total_volume": 0,
                 "my_num_sales": 0
             }
-        
+
         prices = [sale["price"] for sale in recent_sales]
         volumes = [sale["quantity"] for sale in recent_sales]
-        
+
         return {
             "my_avg_sale_price": sum(prices) / len(prices) if prices else None,
             "my_total_volume": sum(volumes),
             "my_num_sales": len(recent_sales),
             "my_revenue": sum(p * q for p, q in zip(prices, volumes))
+        }
+
+    def get_transport_cost_info(self) -> Dict[str, Any]:
+        """
+        Get transport cost information for decision-making.
+
+        Returns:
+            Dictionary with daily and total transport costs
+        """
+        from src.config import get_config
+
+        config = get_config()
+        ledger = self.state["agent_ledgers"][self.agent_name]
+        current_day = self.state["day"]
+        total_days = self.state["num_days"]
+        days_remaining = total_days - current_day
+
+        daily_transport = ledger["inventory"] * config.transport_cost_per_unit
+        total_transport_if_held = daily_transport * days_remaining
+
+        return {
+            "transport_cost_per_unit": config.transport_cost_per_unit,
+            "daily_transport_cost": daily_transport,
+            "total_transport_if_held": total_transport_if_held,
+            "days_remaining": days_remaining,
+            "total_transport_costs_incurred": ledger["total_transport_costs"]
+        }
+
+    def get_cash_constraint_status(self) -> Dict[str, Any]:
+        """
+        Get cash constraint status for market participation.
+
+        Returns:
+            Dictionary with cash status and participation ability
+        """
+        ledger = self.state["agent_ledgers"][self.agent_name]
+
+        return {
+            "current_cash": ledger["cash"],
+            "can_participate": ledger["cash"] >= 0,
+            "cash_deficit": max(0, -ledger["cash"]) if ledger["cash"] < 0 else 0
         }
 

@@ -63,7 +63,9 @@ class SimulationRunner:
                     "cost_per_unit": s1_cost,
                     "total_cost_incurred": s1_inv * s1_cost,
                     "total_revenue": 0.0,
-                    "private_sales_log": []
+                    "private_sales_log": [],
+                    "total_transport_costs": 0.0,
+                    "daily_transport_cost": 0.0
                 },
                 "Seller_2": {
                     "inventory": s2_inv,
@@ -71,7 +73,9 @@ class SimulationRunner:
                     "cost_per_unit": s2_cost,
                     "total_cost_incurred": s2_inv * s2_cost,
                     "total_revenue": 0.0,
-                    "private_sales_log": []
+                    "private_sales_log": [],
+                    "total_transport_costs": 0.0,
+                    "daily_transport_cost": 0.0
                 },
                 "Wholesaler": {
                     "inventory": 0,
@@ -79,10 +83,13 @@ class SimulationRunner:
                     "cost_per_unit": 0,
                     "total_cost_incurred": 0.0,
                     "total_revenue": 0.0,
-                    "private_sales_log": []
+                    "private_sales_log": [],
+                    "total_transport_costs": 0.0,
+                    "daily_transport_cost": 0.0
                 }
             },
             "shopper_database": shopper_database,
+            "daily_transport_costs": {},
             "negotiation_status": "pending",
             "current_negotiation_target": None,
             "negotiation_history": {
@@ -112,6 +119,7 @@ class SimulationRunner:
         self.logger.info(f"Starting Simulation: {self.config.name}")
         self.logger.info(f"Description: {self.config.description}")
         self.logger.info(f"Duration: {self.config.num_days} days")
+        self.logger.info(f"Full Configuration: {json.dumps(self.config.to_dict(), indent=2)}")
         self.logger.info("=" * 80)
 
         # Create initial state

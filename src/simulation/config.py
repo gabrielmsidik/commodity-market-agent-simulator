@@ -78,6 +78,10 @@ class SimulationConfig:
     negotiation_days: list = field(default_factory=lambda: [1, 21, 41, 61, 81])
     max_negotiation_rounds: int = 10
 
+    # Transportation costs configuration
+    transport_cost_per_unit: int = 1  # Daily transport cost per unit brought to market
+    transport_cost_enabled: bool = True  # Toggle feature on/off
+
     def __post_init__(self):
         """Validate configuration after initialization."""
         # Ensure num_days is at least 1
@@ -149,7 +153,9 @@ class SimulationConfig:
             "st_urgency_min": self.st_urgency_min,
             "st_urgency_max": self.st_urgency_max,
             "negotiation_days": self.negotiation_days,
-            "max_negotiation_rounds": self.max_negotiation_rounds
+            "max_negotiation_rounds": self.max_negotiation_rounds,
+            "transport_cost_per_unit": self.transport_cost_per_unit,
+            "transport_cost_enabled": self.transport_cost_enabled
         }
     
     @classmethod
