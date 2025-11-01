@@ -92,7 +92,7 @@ class EconomicState(TypedDict):
     negotiation_status: str  # "pending", "seller_1_negotiating", "seller_2_negotiating", "complete"
     current_negotiation_target: Optional[str]  # "Seller_1" or "Seller_2" or None
     current_negotiation_wholesaler: Optional[str]  # "Wholesaler" or "Wholesaler_2" or None
-    negotiation_history: Dict[str, List[NegotiationOffer]]
+    negotiation_history: Dict[str, Dict[str, List[NegotiationOffer]]]  # Seller -> Wholesaler -> offers
 
     # Agent memory (persistent across all days)
     agent_scratchpads: Dict[str, str]  # Free-form text notes
