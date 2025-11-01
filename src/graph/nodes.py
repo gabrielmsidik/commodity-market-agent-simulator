@@ -173,7 +173,6 @@ TIME & URGENCY:
 - Days Remaining: {days_remaining} days
 - Est. Days to Breakeven: {metrics['days_to_breakeven']:.0f} days (at current revenue rate)
 - ⚠️ CRITICAL: All unsold inventory at day {total_days} EXPIRES (becomes worthless)
-- Your Current Inventory: {inventory} units
 
 MARKET FUNDAMENTALS:
 - Typical Market Price Range: $80-$110 per unit (shoppers' willingness to pay)
