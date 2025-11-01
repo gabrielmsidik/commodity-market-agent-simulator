@@ -28,7 +28,7 @@ class NegotiationResponse(BaseModel):
 
 class MarketOfferResponse(BaseModel):
     """Structured response for daily market offers."""
-    
+
     scratchpad_update: str = Field(
         description="Concise notes to ADD to your scratchpad - focus on new insights about market conditions, pricing strategy, or inventory management. Keep it brief."
     )
@@ -42,5 +42,16 @@ class MarketOfferResponse(BaseModel):
     )
     reasoning: str = Field(
         description="Brief explanation of your pricing and quantity strategy for today"
+    )
+
+
+class CommunicationResponse(BaseModel):
+    """Structured response for inter-agent communication."""
+
+    scratchpad_update: str = Field(
+        description="Concise notes to ADD to your scratchpad about this communication - insights gained, strategy adjustments, or collusion considerations. Keep it brief."
+    )
+    message: str = Field(
+        description="Your message to the other wholesaler. Be strategic - you can propose coordination, share information, or compete. This is free-form text."
     )
 

@@ -10,7 +10,7 @@ from src.graph import nodes
 logger = logging.getLogger("commodity_market.workflow")
 
 
-def should_negotiate(state: EconomicState) -> Literal["init_negotiation", "set_market_offers"]:
+def should_negotiate(state: EconomicState) -> Literal["init_negotiation", "wholesaler_discussion"]:
     """Determine if today is a negotiation day."""
     # Negotiation happens on days 1, 21, 41, 61, 81
     negotiation_days = [1, 21, 41, 61, 81]
@@ -19,8 +19,8 @@ def should_negotiate(state: EconomicState) -> Literal["init_negotiation", "set_m
         logger.debug(f"[Day {state['day']}] Router: Negotiation day → init_negotiation")
         return "init_negotiation"
     else:
-        logger.debug(f"[Day {state['day']}] Router: Regular day → set_market_offers")
-        return "set_market_offers"
+        logger.debug(f"[Day {state['day']}] Router: Regular day → wholesaler_discussion")
+        return "wholesaler_discussion"
 
 
 def negotiation_router(state: EconomicState) -> Literal["wholesaler_make_offer", "seller_respond", "execute_trade", "update_target_seller1", "update_target_seller2", "set_market_offers"]:
@@ -64,6 +64,8 @@ def negotiation_router(state: EconomicState) -> Literal["wholesaler_make_offer",
 def update_negotiation_target_seller1(state: EconomicState) -> dict:
     """Update negotiation: Seller_1 moves to next wholesaler or advances to Seller_2."""
     current_wholesaler = state.get("current_negotiation_wholesaler")
+    print(f"[DEBUG] update_target_seller1: current_wholesaler={current_wholesaler}")
+    logger.debug(f"[Day {state['day']}] update_target_seller1: current_wholesaler={current_wholesaler}")
 
     if current_wholesaler == "Wholesaler":
         # Move to Wholesaler_2
@@ -86,6 +88,7 @@ def update_negotiation_target_seller1(state: EconomicState) -> dict:
 def update_negotiation_target_seller2(state: EconomicState) -> dict:
     """Update negotiation: Seller_2 moves to next wholesaler or completes."""
     current_wholesaler = state.get("current_negotiation_wholesaler")
+    logger.debug(f"[Day {state['day']}] update_target_seller2: current_wholesaler={current_wholesaler}")
 
     if current_wholesaler == "Wholesaler":
         # Move to Wholesaler_2
@@ -123,6 +126,7 @@ def create_simulation_graph() -> StateGraph:
     graph.add_node("execute_trade", nodes.execute_trade)
     graph.add_node("update_target_seller1", update_negotiation_target_seller1)
     graph.add_node("update_target_seller2", update_negotiation_target_seller2)
+    graph.add_node("wholesaler_discussion", nodes.wholesaler_discussion)  # Communication phase
     graph.add_node("set_market_offers", nodes.set_market_offers)
     graph.add_node("run_market_simulation", nodes.run_market_simulation)
     graph.add_node("apply_daily_depreciation", nodes.apply_daily_depreciation)
@@ -136,7 +140,7 @@ def create_simulation_graph() -> StateGraph:
         should_negotiate,
         {
             "init_negotiation": "init_negotiation",
-            "set_market_offers": "set_market_offers"
+            "wholesaler_discussion": "wholesaler_discussion"  # Communication on non-negotiation days
         }
     )
     
@@ -182,15 +186,18 @@ def create_simulation_graph() -> StateGraph:
     # After updating target from Seller_1, continue negotiating
     graph.add_edge("update_target_seller1", "wholesaler_make_offer")
 
-    # After updating target from Seller_2, check if more negotiations needed or go to market
+    # After updating target from Seller_2, check if more negotiations needed or go to communication
     graph.add_conditional_edges(
         "update_target_seller2",
-        lambda state: "wholesaler_make_offer" if state["negotiation_status"] != "complete" else "set_market_offers",
+        lambda state: "wholesaler_make_offer" if state["negotiation_status"] != "complete" else "wholesaler_discussion",
         {
             "wholesaler_make_offer": "wholesaler_make_offer",
-            "set_market_offers": "set_market_offers"
+            "wholesaler_discussion": "wholesaler_discussion"  # Communication after negotiations complete
         }
     )
+
+    # After communication, proceed to market offers
+    graph.add_edge("wholesaler_discussion", "set_market_offers")
 
     graph.add_edge("set_market_offers", "run_market_simulation")
     # Apply daily depreciation after market clears

@@ -127,7 +127,9 @@ class SimulationRunner:
                 "Wholesaler_2": "",
                 "Seller_1": "",
                 "Seller_2": ""
-            }
+            },
+            "communications_log": [],  # Track all inter-agent communications
+            "market_offers_log": []  # Track historical market offers for transparency
         }
         
         return initial_state
@@ -398,8 +400,8 @@ class SimulationRunner:
                     for event in events:
                         for node_name, node_output in event.items():
                             if node_output:
-                                # Handle append-only fields (Annotated[List[Dict], operator.add])
-                                append_only_fields = ["market_log", "unmet_demand_log", "wholesale_trades_log"]
+                                # Handle append-only fields (Annotated[List[...], operator.add])
+                                append_only_fields = ["market_log", "unmet_demand_log", "wholesale_trades_log", "communications_log", "market_offers_log"]
 
                                 for key, value in node_output.items():
                                     if key in append_only_fields:
@@ -475,6 +477,17 @@ class SimulationRunner:
         if today_unmet:
             total_unmet = sum(u["quantity"] for u in today_unmet)
             self.logger.info(f"  Unmet Demand: {total_unmet} units")
+
+        # Log communications (for collusion analysis)
+        today_comms = [c for c in state.get("communications_log", []) if c["day"] == day]
+        if today_comms:
+            self.logger.info(f"  [WHOLESALER COMMUNICATION]")
+            for comm in today_comms:
+                self.logger.info(f"    Round {comm['round']}: {comm['from_agent']} → {comm['to_agent']}")
+                # Log full message with indentation for readability
+                message_lines = comm["message"].split('\n')
+                for line in message_lines:
+                    self.logger.info(f"      {line}")
 
         # Log inventory levels
         ledgers = state["agent_ledgers"]

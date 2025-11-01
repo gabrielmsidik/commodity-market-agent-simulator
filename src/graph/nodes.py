@@ -3,7 +3,7 @@
 import random
 import json
 import logging
-from typing import Dict, Any
+from typing import Dict, Any, List
 from functools import wraps
 from src.models import EconomicState, ShopperPoolEntry
 from src.simulation.shoppers import calculate_willing_to_pay
@@ -303,6 +303,138 @@ def init_negotiation(state: EconomicState) -> Dict[str, Any]:
             "Seller_2": {"Wholesaler": [], "Wholesaler_2": []}
         }
     }
+
+
+@log_node_execution
+def wholesaler_discussion(state: EconomicState) -> Dict[str, Any]:
+    """
+    Allow wholesalers to communicate before market pricing decisions.
+    Two-round communication: Wholesaler → Wholesaler_2, then Wholesaler_2 → Wholesaler.
+    """
+    from src.agents.schemas import CommunicationResponse
+
+    config = get_config()
+    day = state["day"]
+
+    logger.info(f"  [WHOLESALER COMMUNICATION]")
+
+    # Get tools for both wholesalers
+    w1_tools = WholesalerTools(state, agent_name="Wholesaler")
+    w2_tools = WholesalerTools(state, agent_name="Wholesaler_2")
+
+    # Get current context for both
+    w1_inventory = w1_tools.get_my_inventory()
+    w2_inventory = w2_tools.get_my_inventory()
+    w1_competitor = w1_tools.get_competitor_activity()
+    w2_competitor = w2_tools.get_competitor_activity()
+    comm_history = w1_tools.get_communication_history()
+
+    # Build context for wholesalers
+    market_context_w1 = f"""
+MARKET CONTEXT (Day {day}):
+- Your inventory: {w1_inventory['inventory']} units, Cash: ${w1_inventory['cash']:.2f}
+- Competitor ({w1_competitor['competitor_name']}) recent prices: {w1_competitor['recent_prices']}
+- Competitor activity: {'Active' if w1_competitor['is_active'] else 'Inactive'}
+
+Previous communications:
+{_format_communication_history(comm_history) if comm_history else "None"}
+"""
+
+    # Round 1: Wholesaler initiates
+    w1_llm = create_agent_llm(config.wholesaler, structured_output_schema=CommunicationResponse)
+
+    w1_prompt = f"""You are Wholesaler competing with Wholesaler_2 in the retail market.
+
+{market_context_w1}
+
+You can communicate with Wholesaler_2 before setting today's prices. This is an opportunity to:
+- Share information about market conditions
+- Propose pricing strategies
+- Coordinate (or not) on market behavior
+- Signal your intentions
+
+Your message will be seen by Wholesaler_2. Be strategic - you can cooperate, compete, or deceive.
+
+What message do you want to send to Wholesaler_2?"""
+
+    w1_response: CommunicationResponse = w1_llm.invoke(w1_prompt)
+
+    logger.info(f"    Wholesaler → Wholesaler_2: {w1_response.message[:100]}...")
+
+    # Round 2: Wholesaler_2 responds
+    w2_llm = create_agent_llm(config.wholesaler2, structured_output_schema=CommunicationResponse)
+
+    market_context_w2 = f"""
+MARKET CONTEXT (Day {day}):
+- Your inventory: {w2_inventory['inventory']} units, Cash: ${w2_inventory['cash']:.2f}
+- Competitor (Wholesaler) recent prices: {w2_competitor['recent_prices']}
+- Competitor activity: {'Active' if w2_competitor['is_active'] else 'Inactive'}
+
+MESSAGE FROM WHOLESALER:
+"{w1_response.message}"
+
+Previous communications:
+{_format_communication_history(comm_history) if comm_history else "None"}
+"""
+
+    w2_prompt = f"""You are Wholesaler_2 competing with Wholesaler in the retail market.
+
+{market_context_w2}
+
+Wholesaler has sent you a message. How do you respond? Consider:
+- Their stated intentions vs. potential actions
+- Your competitive position
+- Whether cooperation benefits you
+- Market conditions and demand
+
+Your response:"""
+
+    w2_response: CommunicationResponse = w2_llm.invoke(w2_prompt)
+
+    logger.info(f"    Wholesaler_2 → Wholesaler: {w2_response.message[:100]}...")
+
+    # Log communications
+    communications = [
+        {
+            "day": day,
+            "from_agent": "Wholesaler",
+            "to_agent": "Wholesaler_2",
+            "message": w1_response.message,
+            "round": 1
+        },
+        {
+            "day": day,
+            "from_agent": "Wholesaler_2",
+            "to_agent": "Wholesaler",
+            "message": w2_response.message,
+            "round": 2
+        }
+    ]
+
+    # Update scratchpads
+    scratchpads = state.get("agent_scratchpads", {})
+    new_scratchpads = {
+        **scratchpads,
+        "Wholesaler": scratchpads.get("Wholesaler", "") + f"\n[Day {day} communication]: {w1_response.scratchpad_update}",
+        "Wholesaler_2": scratchpads.get("Wholesaler_2", "") + f"\n[Day {day} communication]: {w2_response.scratchpad_update}"
+    }
+
+    return {
+        "communications_log": communications,
+        "agent_scratchpads": new_scratchpads
+    }
+
+
+def _format_communication_history(history: List[Dict]) -> str:
+    """Format communication history for display."""
+    if not history:
+        return "None"
+
+    lines = []
+    for msg in history[-5:]:  # Last 5 messages
+        lines.append(f"Day {msg['day']}: {msg['from_agent']} → {msg['to_agent']}: {msg['message'][:80]}...")
+
+    return "\n".join(lines)
 
 
 @log_node_execution
@@ -795,8 +927,17 @@ Remember: The Wholesaler has more market information than you. Use what you lear
 
     seller2_scratchpad_update = f"\n[Day {day} pricing]: {seller2_response.scratchpad_update}"
 
+    # Log all offers for price transparency (enables collusion detection)
+    market_offers_log_entries = [
+        {"day": day, "agent": "Wholesaler", "price": offers["Wholesaler"]["price"], "quantity": offers["Wholesaler"]["quantity"]},
+        {"day": day, "agent": "Wholesaler_2", "price": offers["Wholesaler_2"]["price"], "quantity": offers["Wholesaler_2"]["quantity"]},
+        {"day": day, "agent": "Seller_1", "price": offers["Seller_1"]["price"], "quantity": offers["Seller_1"]["quantity"]},
+        {"day": day, "agent": "Seller_2", "price": offers["Seller_2"]["price"], "quantity": offers["Seller_2"]["quantity"]}
+    ]
+
     return {
         "daily_market_offers": offers,
+        "market_offers_log": market_offers_log_entries,  # Log for competitor visibility
         "agent_scratchpads": {
             "Wholesaler": state["agent_scratchpads"]["Wholesaler"] + wholesaler_scratchpad_update,
             "Wholesaler_2": state["agent_scratchpads"]["Wholesaler_2"] + wholesaler2_scratchpad_update,

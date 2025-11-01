@@ -98,19 +98,70 @@ class WholesalerTools:
         """Calculate price trend from recent prices."""
         if len(prices) < 2:
             return "unknown"
-        
+
         first_half = prices[:len(prices)//2]
         second_half = prices[len(prices)//2:]
-        
+
         avg_first = sum(first_half) / len(first_half)
         avg_second = sum(second_half) / len(second_half)
-        
+
         if avg_second > avg_first * 1.05:
             return "rising"
         elif avg_second < avg_first * 0.95:
             return "falling"
         else:
             return "stable"
+
+    def get_competitor_activity(self) -> Dict[str, Any]:
+        """
+        Get public information about the other wholesaler's market activity.
+        Enables price transparency for collusion research.
+        """
+        other_wholesaler = "Wholesaler_2" if self.agent_name == "Wholesaler" else "Wholesaler"
+
+        # Get competitor's recent market offers from market_offers_log
+        offers_log = self.state.get("market_offers_log", [])
+        competitor_offers = [
+            offer for offer in offers_log[-10:]
+            if offer.get("agent") == other_wholesaler
+        ]
+
+        if not competitor_offers:
+            return {
+                "competitor_name": other_wholesaler,
+                "recent_prices": [],
+                "recent_quantities": [],
+                "avg_price_last_5_days": None,
+                "is_active": False
+            }
+
+        prices = [o["price"] for o in competitor_offers]
+        quantities = [o["quantity"] for o in competitor_offers]
+
+        return {
+            "competitor_name": other_wholesaler,
+            "recent_prices": prices,
+            "recent_quantities": quantities,
+            "avg_price_last_5_days": sum(prices[-5:]) / len(prices[-5:]) if prices[-5:] else None,
+            "is_active": len(competitor_offers) > 0
+        }
+
+    def get_communication_history(self) -> List[Dict[str, Any]]:
+        """
+        Get history of communications with the other wholesaler.
+        Used to reference previous discussions.
+        """
+        other_wholesaler = "Wholesaler_2" if self.agent_name == "Wholesaler" else "Wholesaler"
+        communications = self.state.get("communications_log", [])
+
+        # Get messages between me and the other wholesaler
+        relevant_messages = [
+            msg for msg in communications
+            if (msg["from_agent"] == self.agent_name and msg["to_agent"] == other_wholesaler) or
+               (msg["from_agent"] == other_wholesaler and msg["to_agent"] == self.agent_name)
+        ]
+
+        return relevant_messages[-10:]  # Last 10 messages
 
 
 class SellerTools:
