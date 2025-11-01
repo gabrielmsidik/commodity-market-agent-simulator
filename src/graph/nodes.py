@@ -103,7 +103,7 @@ def calculate_pnl(ledger: Dict[str, Any]) -> float:
     Returns:
         Current PnL (can be negative)
     """
-    return ledger.get("total_revenue", 0.0) - ledger.get("total_cost_incurred", 0.0)
+    return ledger.get("total_revenue", 0.0) - ledger.get("total_cost_incurred", 0.0) - ledger.get("total_transport_costs", 0.0)
 
 
 def get_economic_priors(state: EconomicState, agent_name: str, context: str = "general") -> str:
@@ -378,7 +378,7 @@ def init_negotiation(state: EconomicState) -> Dict[str, Any]:
 def wholesaler_discussion(state: EconomicState) -> Dict[str, Any]:
     """
     Allow wholesalers to communicate before market pricing decisions.
-    Two-round communication: Wholesaler → Wholesaler_2, then Wholesaler_2 → Wholesaler.
+    Six rounds of back-and-forth communication between wholesalers.
     """
     from src.agents.schemas import CommunicationResponse
 
@@ -398,6 +398,16 @@ def wholesaler_discussion(state: EconomicState) -> Dict[str, Any]:
     w2_competitor = w2_tools.get_competitor_activity()
     comm_history = w1_tools.get_communication_history()
 
+    # Initialize communications log
+    communications = []
+
+    # Scratchpad updates
+    w1_scratchpad_updates = []
+    w2_scratchpad_updates = []
+    
+    # Store conversation history for context
+    conversation_so_far = []
+
     # Build context for wholesalers
     market_context_w1 = f"""
 MARKET CONTEXT (Day {day}):
@@ -412,7 +422,9 @@ Previous communications:
     # Round 1: Wholesaler initiates
     w1_llm = create_agent_llm(config.wholesaler, structured_output_schema=CommunicationResponse)
 
-    w1_prompt = f"""You are Wholesaler competing with Wholesaler_2 in the retail market.
+    w1_prompt = f"""You are Wholesaler competing with Wholesaler_2 in the retail market. 
+There are only 2 wholesalers in the market, yourself and your competitor. 
+This is ROUND 1 of 6 communication rounds before today's market opens.
 
 {market_context_w1}
 
@@ -427,8 +439,18 @@ Your message will be seen by Wholesaler_2. Be strategic - you can cooperate, com
 What message do you want to send to Wholesaler_2?"""
 
     w1_response: CommunicationResponse = w1_llm.invoke(w1_prompt)
+    w1_scratchpad_updates.append(w1_response.scratchpad_update)
+    conversation_so_far.append(f"Wholesaler: {w1_response.message}")
 
     logger.info(f"    Wholesaler → Wholesaler_2: {w1_response.message[:100]}...")
+
+    communications.append({
+        "day": day,
+        "from_agent": "Wholesaler",
+        "to_agent": "Wholesaler_2",
+        "message": w1_response.message,
+        "round": 1
+    })
 
     # Round 2: Wholesaler_2 responds
     w2_llm = create_agent_llm(config.wholesaler2, structured_output_schema=CommunicationResponse)
@@ -447,6 +469,8 @@ Previous communications:
 """
 
     w2_prompt = f"""You are Wholesaler_2 competing with Wholesaler in the retail market.
+There are only 2 wholesalers in the market, yourself and your competitor. 
+This is ROUND 2 of 6 communication rounds.
 
 {market_context_w2}
 
@@ -459,33 +483,87 @@ Wholesaler has sent you a message. How do you respond? Consider:
 Your response:"""
 
     w2_response: CommunicationResponse = w2_llm.invoke(w2_prompt)
+    w2_scratchpad_updates.append(w2_response.scratchpad_update)
+    conversation_so_far.append(f"Wholesaler_2: {w2_response.message}")
 
     logger.info(f"    Wholesaler_2 → Wholesaler: {w2_response.message[:100]}...")
 
-    # Log communications
-    communications = [
-        {
-            "day": day,
-            "from_agent": "Wholesaler",
-            "to_agent": "Wholesaler_2",
-            "message": w1_response.message,
-            "round": 1
-        },
-        {
-            "day": day,
-            "from_agent": "Wholesaler_2",
-            "to_agent": "Wholesaler",
-            "message": w2_response.message,
-            "round": 2
-        }
-    ]
+    communications.append({
+        "day": day,
+        "from_agent": "Wholesaler_2",
+        "to_agent": "Wholesaler",
+        "message": w2_response.message,
+        "round": 2
+    })
 
+    for round_num in range(3, 7):  # Rounds 3, 4, 5, 6
+        # Determine who speaks this round (alternating)
+        if round_num % 2 == 1:  # Odd rounds: Wholesaler speaks
+            logger.info(f"    [Round {round_num}/6] Wholesaler responding...")
+            
+            w1_prompt = f"""You are Wholesaler in a communication with Wholesaler_2.
+
+CONVERSATION SO FAR:
+{chr(10).join(conversation_so_far)}
+
+This is ROUND {round_num} of 6. You can continue the discussion, clarify your position, negotiate terms, or finalize your strategy.
+
+What do you say?"""
+
+            w1_response: CommunicationResponse = w1_llm.invoke(w1_prompt)
+            w1_scratchpad_updates.append(w1_response.scratchpad_update)
+            
+            logger.info(f"      Wholesaler → Wholesaler_2: {w1_response.message[:100]}...")
+            
+            communications.append({
+                "day": day,
+                "from_agent": "Wholesaler",
+                "to_agent": "Wholesaler_2",
+                "message": w1_response.message,
+                "round": round_num
+            })
+            
+            conversation_so_far.append(f"Wholesaler: {w1_response.message}")
+            
+        else:  # Even rounds: Wholesaler_2 speaks
+            logger.info(f"    [Round {round_num}/6] Wholesaler_2 responding...")
+            
+            w2_prompt = f"""You are Wholesaler_2 in a communication with Wholesaler.
+
+CONVERSATION SO FAR:
+{chr(10).join(conversation_so_far)}
+
+This is ROUND {round_num} of 6. You can continue the discussion, clarify your position, negotiate terms, or finalize your strategy.
+
+What do you say?"""
+
+            w2_response: CommunicationResponse = w2_llm.invoke(w2_prompt)
+            w2_scratchpad_updates.append(w2_response.scratchpad_update)
+            
+            logger.info(f"      Wholesaler_2 → Wholesaler: {w2_response.message[:100]}...")
+            
+            communications.append({
+                "day": day,
+                "from_agent": "Wholesaler_2",
+                "to_agent": "Wholesaler",
+                "message": w2_response.message,
+                "round": round_num
+            })
+            
+            conversation_so_far.append(f"Wholesaler_2: {w2_response.message}")
+
+        
     # Update scratchpads
     scratchpads = state.get("agent_scratchpads", {})
+    
+    # Combine all scratchpad updates for each agent
+    w1_combined = "; ".join(w1_scratchpad_updates)
+    w2_combined = "; ".join(w2_scratchpad_updates)
+    
     new_scratchpads = {
         **scratchpads,
-        "Wholesaler": scratchpads.get("Wholesaler", "") + f"\n[Day {day} communication]: {w1_response.scratchpad_update}",
-        "Wholesaler_2": scratchpads.get("Wholesaler_2", "") + f"\n[Day {day} communication]: {w2_response.scratchpad_update}"
+        "Wholesaler": scratchpads.get("Wholesaler", "") + f"\n[Day {day} communication]: {w1_combined}",
+        "Wholesaler_2": scratchpads.get("Wholesaler_2", "") + f"\n[Day {day} communication]: {w2_combined}"
     }
 
     return {
@@ -501,7 +579,8 @@ def _format_communication_history(history: List[Dict]) -> str:
 
     lines = []
     for msg in history[-5:]:  # Last 5 messages
-        lines.append(f"Day {msg['day']}: {msg['from_agent']} → {msg['to_agent']}: {msg['message'][:80]}...")
+        lines.append(f"Day {msg['day']}, Round {msg.get('round', '?')}] "
+                    f": {msg['from_agent']} → {msg['to_agent']}: {msg['message'][:80]}...")
 
     return "\n".join(lines)
 
@@ -773,6 +852,10 @@ Provide your response with:
 IMPORTANT: Your scratchpad should be concise. Only add NEW insights you learned.
 Note: "accept" means you accept their offer. "reject" ends negotiation.
 The wholesaler has superior market data - try to learn from what they reveal!"""
+    
+    if pnl < 0: 
+        print(f"{seller_name} is in neg")
+        prompt += "You are in negative profit, meaning you are incurring losses. Use this opportunity to bring yourself out of red."
 
     # Call LLM with structured output - returns NegotiationResponse object
     response: NegotiationResponse = llm.invoke(prompt)
