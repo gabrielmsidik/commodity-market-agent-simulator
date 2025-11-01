@@ -1,15 +1,30 @@
 # Commodity Market Agent Simulator
 
-A 100-day economic simulation testing information asymmetry hypothesis using LangGraph and LLM agents.
+A multi-agent AI safety research project investigating **emergent collusion in LLM-powered markets**. This simulation tests how AI agents with communication capabilities and price transparency can spontaneously develop anti-competitive coordination without explicit instruction.
+
+## Research Context
+
+**Current Phase**: Collusion detection research with multi-wholesaler competitive architecture
+
+**Key Finding (3-day pilot)**: Wholesaler agents achieved 98.1% price convergence with explicit coordination language ("temporary pricing agreement"), demonstrating emergent collusive behavior.
+
+**Active Branch**: `feat-collusion-detection` - Multi-wholesaler communication framework and baseline experiments
 
 ## Features
 
-- **Multi-agent simulation**: Wholesaler and 2 Sellers with different information access
+### Core Simulation
+- **Multi-agent system**: 2 Wholesalers + 2 Sellers competing in commodity market
+- **Free-form communication**: LLM agents exchange strategic messages daily
+- **Price transparency**: Full competitor visibility enabling coordination
 - **Multi-round negotiations**: Up to 10 rounds of offers/counteroffers
 - **Agent memory**: Persistent scratchpads for strategic learning
-- **Configurable parameters**: Customize costs, inventory, demand, and agent behavior
-- **Web UI**: Run simulations and analyze results through a browser interface
-- **Comprehensive logging**: All simulation data saved for analysis
+- **Comprehensive logging**: All communications and pricing decisions saved
+
+### Research Capabilities
+- **Communication framework**: Two-round daily message exchange between wholesalers
+- **Collusion detection**: Behavioral pattern analysis and price correlation metrics
+- **Information asymmetry**: Configurable visibility of market data
+- **Baseline experiments**: Controlled tests isolating causal factors
 
 ## Quick Start
 
@@ -51,6 +66,70 @@ python app.py
 ```
 
 Open your browser to `http://localhost:5000`
+
+---
+
+## 🔬 Research: Baseline Collusion Experiments
+
+**For Research Team Members**: Quick start guide for running baseline experiments.
+
+### Running Experiment D (Treatment - Full System) ✅
+
+This experiment tests the current system with **both** communication and price transparency enabled:
+
+```bash
+# Run 21-day treatment experiment
+PYTHONPATH=. python experiments/baseline/run_21day_treatment.py
+```
+
+**Configuration**:
+- Communication: ✅ Enabled (daily 2-round message exchange)
+- Price Transparency: ✅ Enabled (competitor pricing visible)
+- Duration: 21 days (covers Days 1 and 21 negotiation cycles)
+
+**Runtime**: ~30-40 minutes
+**Cost**: ~$0.50-1.00 (GPT-4o-mini via OpenRouter)
+**Output**: `experiments/baseline/results/experiment_D_treatment_*.json`
+
+**What to Expect**:
+- Full communication logs (42 messages: 2 per day × 21 days)
+- Price convergence analysis (daily comparison of wholesaler prices)
+- Summary statistics (average convergence, identical pricing days)
+
+### Analyzing Results
+
+After the experiment completes, check:
+
+1. **Console Output**: Displays convergence analysis for Days 1, 7, 14, 21
+2. **JSON File**: Contains all communications, market offers, and financial outcomes
+3. **Log File**: Full simulation log in `logs/simulation_*.log`
+
+Example output:
+```
+Day 1:
+  Wholesaler:   $90 (200 units)
+  Wholesaler_2: $85 (100 units)
+  Price diff: $5 (5.6%)
+  Convergence: 94.4%
+
+Day 21:
+  Wholesaler:   $85 (0 units)
+  Wholesaler_2: $85 (0 units)
+  Price diff: $0 (0.0%)
+  🔴 IDENTICAL PRICING
+  Convergence: 100.0%
+```
+
+### Additional Experiments (A, B, C)
+
+To run experiments testing isolated factors:
+- **Experiment A**: No Communication (requires workflow modification)
+- **Experiment B**: No Transparency (requires tools modification)
+- **Experiment C**: Full Baseline (neither feature)
+
+**See**: `experiments/baseline/README.md` for detailed instructions
+
+---
 
 ## Project Structure
 
