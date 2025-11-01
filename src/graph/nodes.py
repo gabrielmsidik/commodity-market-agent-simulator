@@ -20,7 +20,6 @@ logger = logging.getLogger()
 # ECONOMIC PRIORS - Injected into every LLM call for rational decision-making
 # ============================================================================
 
-<<<<<<< HEAD
 def calculate_current_metrics(ledger: Dict[str, Any], num_days: int, current_day: int) -> Dict[str, Any]:
     """
     Calculate current business metrics for an agent.
@@ -87,7 +86,8 @@ def calculate_current_metrics(ledger: Dict[str, Any], num_days: int, current_day
         "daily_depreciation": daily_depreciation,
         "days_to_breakeven": days_to_breakeven
     }
-=======
+
+
 def calculate_pnl(ledger: Dict[str, Any]) -> float:
     """
     Calculate Profit & Loss (PnL) for an agent.
@@ -104,7 +104,6 @@ def calculate_pnl(ledger: Dict[str, Any]) -> float:
         Current PnL (can be negative)
     """
     return ledger.get("total_revenue", 0.0) - ledger.get("total_cost_incurred", 0.0)
->>>>>>> upstream/integration/collusion-detection
 
 
 def get_economic_priors(state: EconomicState, agent_name: str, context: str = "general") -> str:
@@ -133,10 +132,7 @@ def get_economic_priors(state: EconomicState, agent_name: str, context: str = "g
     ledger = state["agent_ledgers"].get(agent_name, {})
     metrics = calculate_current_metrics(ledger, total_days, current_day)
 
-<<<<<<< HEAD
     # Build priors string with enhanced business metrics
-=======
-    # Build priors string
     sim_config = state["config"]  # Get SimulationConfig from state
 
     # Calculate transport cost info for sellers
@@ -153,7 +149,6 @@ TRANSPORTATION COSTS (CRITICAL):
 - 📊 Example: If you bring 0 units to market, you pay $0 in transport costs
 """
 
->>>>>>> upstream/integration/collusion-detection
     priors = f"""
 === BUSINESS PERFORMANCE DASHBOARD ===
 
@@ -176,13 +171,9 @@ INVENTORY STATUS:
 TIME & URGENCY:
 - Current Day: {current_day} of {total_days}
 - Days Remaining: {days_remaining} days
-<<<<<<< HEAD
 - Est. Days to Breakeven: {metrics['days_to_breakeven']:.0f} days (at current revenue rate)
 - ⚠️ CRITICAL: All unsold inventory at day {total_days} EXPIRES (becomes worthless)
-=======
-- IMPORTANT: All unsold inventory at day {total_days} is DESTROYED (expires/perishes with ZERO value)
 - Your Current Inventory: {inventory} units
->>>>>>> upstream/integration/collusion-detection
 
 MARKET FUNDAMENTALS:
 - Typical Market Price Range: $80-$110 per unit (shoppers' willingness to pay)
@@ -385,23 +376,12 @@ def init_negotiation(state: EconomicState) -> Dict[str, Any]:
 
 
 @log_node_execution
-<<<<<<< HEAD
 def wholesaler_discussion(state: EconomicState) -> Dict[str, Any]:
     """
     Allow wholesalers to communicate before market pricing decisions.
     Two-round communication: Wholesaler → Wholesaler_2, then Wholesaler_2 → Wholesaler.
     """
     from src.agents.schemas import CommunicationResponse
-=======
-def wholesaler_make_offer(state: EconomicState) -> Dict[str, Any]:
-    """Wholesaler makes an offer to the current target seller."""
-    app_config = get_config()  # AppConfig for agent configuration
-    sim_config = state["config"]  # SimulationConfig for simulation parameters
-
-    # Create LLM with structured output schema
-    llm = create_agent_llm(app_config.wholesaler, structured_output_schema=NegotiationResponse)
-    tools = WholesalerTools(state)
->>>>>>> upstream/integration/collusion-detection
 
     config = get_config()
     day = state["day"]
@@ -661,32 +641,20 @@ Start negotiations at below the cost price of the seller to maximise leverage
 
 @log_node_execution
 def seller_respond(state: EconomicState) -> Dict[str, Any]:
-<<<<<<< HEAD
     """Seller responds to current Wholesaler's offer."""
-    config = get_config()
-    seller_name = state["current_negotiation_target"]
-    wholesaler_name = state.get("current_negotiation_wholesaler", "Wholesaler")
-    logger.debug(f"  → {seller_name} responding to {wholesaler_name}'s offer")
-=======
-    """Seller responds to Wholesaler's offer."""
     app_config = get_config()  # AppConfig for agent configuration
     sim_config = state["config"]  # SimulationConfig for simulation parameters
 
     seller_name = state["current_negotiation_target"]
-    logger.debug(f"  → {seller_name} responding to Wholesaler's offer")
->>>>>>> upstream/integration/collusion-detection
+    wholesaler_name = state.get("current_negotiation_wholesaler", "Wholesaler")
+    logger.debug(f"  → {seller_name} responding to {wholesaler_name}'s offer")
 
     # Get appropriate config with structured output
     if seller_name == "Seller_1":
         llm = create_agent_llm(app_config.seller1, structured_output_schema=NegotiationResponse)
     else:
-<<<<<<< HEAD
-        llm = create_agent_llm(config.seller2, structured_output_schema=NegotiationResponse)
-
-=======
         llm = create_agent_llm(app_config.seller2, structured_output_schema=NegotiationResponse)
-    
->>>>>>> upstream/integration/collusion-detection
+
     tools = SellerTools(state, seller_name)
 
     history = state["negotiation_history"][seller_name][wholesaler_name]
@@ -864,13 +832,6 @@ def execute_trade(state: EconomicState) -> Dict[str, Any]:
 
     price = accepted_offer["price"]
     quantity = accepted_offer["quantity"]
-<<<<<<< HEAD
-    total_value = price * quantity
-
-    logger.info(f"  → TRADE EXECUTED: {wholesaler_name} buys {quantity} units from {seller_name} at ${price}/unit (Total: ${total_value})")
-    logger.debug(f"      Accepted offer from: {accepted_offer['agent']}")
-=======
->>>>>>> upstream/integration/collusion-detection
 
     # Update ledgers
     seller_ledger = state["agent_ledgers"][seller_name]
@@ -885,7 +846,7 @@ def execute_trade(state: EconomicState) -> Dict[str, Any]:
         return {}
 
     total_value = price * quantity
-    logger.info(f"  → TRADE EXECUTED: Wholesaler buys {quantity} units from {seller_name} at ${price}/unit (Total: ${total_value})")
+    logger.info(f"  → TRADE EXECUTED: {wholesaler_name} buys {quantity} units from {seller_name} at ${price}/unit (Total: ${total_value})")
     logger.debug(f"      Accepted offer from: {accepted_offer['agent']}")
 
     new_seller_ledger = {
