@@ -693,7 +693,10 @@ def seller_respond(state: EconomicState) -> Dict[str, Any]:
         return {
             "negotiation_history": {
                 **state["negotiation_history"],
-                seller_name: new_history
+                seller_name: {
+                    **state["negotiation_history"][seller_name],
+                    wholesaler_name: new_history
+                }
             },
             "agent_scratchpads": {
                 **state["agent_scratchpads"],
