@@ -25,6 +25,8 @@ class AgentLedger(TypedDict):
     total_cost_incurred: float
     total_revenue: float
     private_sales_log: List[Dict]
+    total_transport_costs: float  # Cumulative transport costs incurred
+    daily_transport_cost: float  # Transport cost for current day (informational)
 
 
 class MarketOffer(TypedDict):
@@ -44,9 +46,10 @@ class NegotiationOffer(TypedDict):
     action: str  # "offer", "counteroffer", "accept", or "reject"
 
 
-class ShopperPoolEntry(TypedDict):
+class ShopperPoolEntry(TypedDict, total=False):
     """Entry in the daily shopper pool."""
-    shopper_id: str
+    shopper_id: str  # Unique ID per demand unit (e.g., "S1_unit0", "S1_unit1")
+    original_shopper_id: str  # Original shopper ID for aggregation (optional)
     willing_to_pay: int  # Integer price
     demand_unit: int  # Always 1 (for matching algorithm)
 
@@ -77,6 +80,7 @@ class EconomicState(TypedDict):
     # Daily state (reset each day)
     daily_shopper_pool: List[ShopperPoolEntry]
     daily_market_offers: Dict[str, MarketOffer]
+    daily_transport_costs: Dict[str, float]  # Transport costs by agent for current day
 
     # Agent state (persistent)
     agent_ledgers: Dict[str, AgentLedger]
@@ -99,4 +103,7 @@ class EconomicState(TypedDict):
 
     # Baseline experiment configuration
     enable_price_transparency: bool  # If True, agents can see competitor prices via get_competitor_activity
+
+    # Simulation configuration (immutable)
+    config: Any  # SimulationConfig (using Any to avoid circular import)
 

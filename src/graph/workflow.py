@@ -14,8 +14,8 @@ def create_should_negotiate(enable_communication: bool):
     """Create a should_negotiate router function based on config."""
     def should_negotiate(state: EconomicState) -> Literal["init_negotiation", "wholesaler_discussion", "set_market_offers"]:
         """Determine if today is a negotiation day."""
-        # Negotiation happens on days 1, 21, 41, 61, 81
-        negotiation_days = [1, 21, 41, 61, 81]
+        # Get negotiation days from config (upstream improvement)
+        negotiation_days = state["config"].negotiation_days
 
         if state["day"] in negotiation_days:
             logger.debug(f"[Day {state['day']}] Router: Negotiation day → init_negotiation")
@@ -51,23 +51,36 @@ def create_negotiation_router(enable_communication: bool):
             # Execute trade and move on
             logger.debug(f"[Day {state['day']}] Negotiation Router: Offer accepted → execute_trade")
             return "execute_trade"
-        elif last_offer["action"] == "reject" or round_number > 10:
-            # No trade, move to next wholesaler or seller
-            logger.debug(f"[Day {state['day']}] Negotiation Router: Negotiation ended (reject or max rounds)")
+        elif last_offer["action"] == "reject":
+            # Explicit rejection - no trade, move to next wholesaler or seller
+            logger.debug(f"[Day {state['day']}] Negotiation Router: Negotiation rejected")
             if seller_name == "Seller_1":
                 logger.debug(f"[Day {state['day']}] → update_target_seller1")
                 return "update_target_seller1"
             else:
                 logger.debug(f"[Day {state['day']}] → update_target_seller2")
                 return "update_target_seller2"
-
-        # Continue negotiation
-        if last_offer["agent"] in ["Wholesaler", "Wholesaler_2"]:
-            logger.debug(f"[Day {state['day']}] Negotiation Router: Round {round_number} → seller_respond")
-            return "seller_respond"
         else:
-            logger.debug(f"[Day {state['day']}] Negotiation Router: Round {round_number} → wholesaler_make_offer")
-            return "wholesaler_make_offer"
+            # Check if max rounds reached (use config - upstream improvement)
+            max_rounds = state["config"].max_negotiation_rounds
+
+            if round_number > max_rounds:
+                # Max rounds reached - no trade, move to next wholesaler or seller
+                logger.debug(f"[Day {state['day']}] Negotiation Router: Max rounds ({round_number}) reached")
+                if seller_name == "Seller_1":
+                    logger.debug(f"[Day {state['day']}] → update_target_seller1")
+                    return "update_target_seller1"
+                else:
+                    logger.debug(f"[Day {state['day']}] → update_target_seller2")
+                    return "update_target_seller2"
+
+            # Continue negotiation
+            if last_offer["agent"] in ["Wholesaler", "Wholesaler_2"]:
+                logger.debug(f"[Day {state['day']}] Negotiation Router: Round {round_number} → seller_respond")
+                return "seller_respond"
+            else:
+                logger.debug(f"[Day {state['day']}] Negotiation Router: Round {round_number} → wholesaler_make_offer")
+                return "wholesaler_make_offer"
     return negotiation_router
 
 

@@ -72,7 +72,9 @@ class SimulationRunner:
                     "total_cost_incurred": s1_inv * s1_cost,  # Total investment (initial + purchases)
                     "incremental_cost_incurred": 0.0,  # Costs from purchases during simulation
                     "total_revenue": 0.0,
-                    "private_sales_log": []
+                    "private_sales_log": [],
+                    "total_transport_costs": 0.0,
+                    "daily_transport_cost": 0.0
                 },
                 "Seller_2": {
                     "inventory": s2_inv,
@@ -86,7 +88,9 @@ class SimulationRunner:
                     "total_cost_incurred": s2_inv * s2_cost,
                     "incremental_cost_incurred": 0.0,
                     "total_revenue": 0.0,
-                    "private_sales_log": []
+                    "private_sales_log": [],
+                    "total_transport_costs": 0.0,
+                    "daily_transport_cost": 0.0
                 },
                 "Wholesaler": {
                     "inventory": 0,
@@ -114,10 +118,13 @@ class SimulationRunner:
                     "total_cost_incurred": 0.0,
                     "incremental_cost_incurred": 0.0,
                     "total_revenue": 0.0,
-                    "private_sales_log": []
+                    "private_sales_log": [],
+                    "total_transport_costs": 0.0,
+                    "daily_transport_cost": 0.0
                 }
             },
             "shopper_database": shopper_database,
+            "daily_transport_costs": {},
             "negotiation_status": "pending",
             "current_negotiation_target": None,
             "current_negotiation_wholesaler": None,  # Track which wholesaler is negotiating
@@ -133,7 +140,8 @@ class SimulationRunner:
             },
             "communications_log": [],  # Track all inter-agent communications
             "market_offers_log": [],  # Track historical market offers for transparency
-            "enable_price_transparency": self.config.enable_price_transparency  # Baseline experiment configuration
+            "enable_price_transparency": self.config.enable_price_transparency,  # Baseline experiment configuration
+            "config": self.config  # Add config to state (upstream improvement)
         }
 
         return initial_state
@@ -151,6 +159,7 @@ class SimulationRunner:
         self.logger.info(f"Starting Simulation: {self.config.name}")
         self.logger.info(f"Description: {self.config.description}")
         self.logger.info(f"Duration: {self.config.num_days} days")
+        self.logger.info(f"Full Configuration: {json.dumps(self.config.to_dict(), indent=2)}")
         self.logger.info("=" * 80)
 
         # Create initial state
@@ -450,7 +459,7 @@ class SimulationRunner:
         today_unmet = [u for u in state["unmet_demand_log"] if u["day"] == day]
 
         # Get negotiation info if it's a negotiation day
-        is_negotiation_day = day in [1, 21, 41, 61, 81]
+        is_negotiation_day = day in self.config.negotiation_days
 
         if is_negotiation_day:
             self.logger.info(f"  [NEGOTIATION DAY]")
@@ -524,9 +533,13 @@ class SimulationRunner:
         for agent in ["Seller_1", "Seller_2", "Wholesaler", "Wholesaler_2"]:
             perf = summary["agent_performance"][agent]
             self.logger.info(f"  {agent}:")
-            self.logger.info(f"    Revenue: ${perf['revenue']:.2f}")
-            self.logger.info(f"    Costs: ${perf['costs']:.2f}")
-            self.logger.info(f"    Net Position (Profit/Loss): ${perf['net_position']:.2f}")
+            # Use upstream's cleaner PnL format
+            self.logger.info(f"    💰 PROFIT & LOSS (PnL): ${perf['profit']:.2f}")
+            self.logger.info(f"       - Revenue: ${perf['revenue']:.2f}")
+            self.logger.info(f"       - Costs: ${perf['costs']:.2f}")
+            self.logger.info(f"    Final Cash: ${perf['final_cash']:.2f}")
+            # Add detailed metrics from HEAD
+            self.logger.info(f"    Net Position: ${perf['net_position']:.2f}")
             self.logger.info(f"    Gross Profit: ${perf['gross_profit']:.2f}")
             self.logger.info(f"    ROI: {perf['roi']:.1%}")
             self.logger.info(f"    Cost Recovery Rate: {perf['cost_recovery_rate']:.1%}")
@@ -537,7 +550,6 @@ class SimulationRunner:
             self.logger.info(f"    Wholesale Sales (to wholesaler): {perf['wholesale_units_sold']} units")
             self.logger.info(f"    Wholesale Purchases (from sellers): {perf['wholesale_units_bought']} units")
             self.logger.info(f"    Remaining Inventory: {perf['remaining_inventory']} units")
-            self.logger.info(f"    Final Cash: ${perf['final_cash']:.2f}")
         self.logger.info("")
         self.logger.info("TRADE HISTORY:")
         self.logger.info("")
