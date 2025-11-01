@@ -1104,7 +1104,7 @@ Remember: The Wholesaler has more market information than you. Use what you lear
         if seller1_ledger["cash"] - s1_transport_cost < 0:
             logger.warning(f"  ⚠️ Seller_1 cannot afford transport costs for {s1_quantity} units (${s1_transport_cost}). Reducing quantity.")
             # Reduce quantity to what they can afford
-            max_affordable_quantity = seller1_ledger["cash"] // sim_config.transport_cost_per_unit
+            max_affordable_quantity = int(seller1_ledger["cash"] // sim_config.transport_cost_per_unit)
             s1_quantity = min(s1_quantity, max_affordable_quantity)
             s1_transport_cost = s1_quantity * sim_config.transport_cost_per_unit
             logger.info(f"  → Seller_1 adjusted quantity to {s1_quantity} units (can afford ${s1_transport_cost} transport cost)")
@@ -1221,7 +1221,7 @@ Remember: The Wholesaler has more market information than you. Use what you lear
         if seller2_ledger["cash"] - s2_transport_cost < 0:
             logger.warning(f"  ⚠️ Seller_2 cannot afford transport costs for {s2_quantity} units (${s2_transport_cost}). Reducing quantity.")
             # Reduce quantity to what they can afford
-            max_affordable_quantity = seller2_ledger["cash"] // sim_config.transport_cost_per_unit
+            max_affordable_quantity = int(seller2_ledger["cash"] // sim_config.transport_cost_per_unit)
             s2_quantity = min(s2_quantity, max_affordable_quantity)
             s2_transport_cost = s2_quantity * sim_config.transport_cost_per_unit
             logger.info(f"  → Seller_2 adjusted quantity to {s2_quantity} units (can afford ${s2_transport_cost} transport cost)")
