@@ -75,8 +75,13 @@ class SimulationConfig:
     st_urgency_max: float = 2.5
     
     # Negotiation configuration
-    negotiation_days: list = field(default_factory=lambda: [1, 21, 41, 61, 81])
+    # Default: negotiations every ~5 days for better collusion analysis
+    negotiation_days: list = field(default_factory=lambda: [1, 6, 11, 16, 21, 26, 31, 36, 41, 46, 51, 56, 61, 66, 71, 76, 81])
     max_negotiation_rounds: int = 10
+
+    # Baseline experiment toggles (collusion research)
+    enable_communication: bool = True  # Enable wholesaler daily communication
+    enable_price_transparency: bool = True  # Enable competitor price visibility
 
     # Transportation costs configuration
     transport_cost_per_unit: int = 1  # Daily transport cost per unit brought to market
@@ -154,6 +159,8 @@ class SimulationConfig:
             "st_urgency_max": self.st_urgency_max,
             "negotiation_days": self.negotiation_days,
             "max_negotiation_rounds": self.max_negotiation_rounds,
+            "enable_communication": self.enable_communication,
+            "enable_price_transparency": self.enable_price_transparency,
             "transport_cost_per_unit": self.transport_cost_per_unit,
             "transport_cost_enabled": self.transport_cost_enabled
         }

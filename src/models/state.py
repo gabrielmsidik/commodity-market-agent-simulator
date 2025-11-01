@@ -54,6 +54,15 @@ class ShopperPoolEntry(TypedDict, total=False):
     demand_unit: int  # Always 1 (for matching algorithm)
 
 
+class CommunicationMessage(TypedDict):
+    """A message exchanged between agents."""
+    day: int
+    from_agent: str
+    to_agent: str
+    message: str  # Free-form text
+    round: int  # 1 or 2 (for two-round communication)
+
+
 class EconomicState(TypedDict):
     """The complete state of the economic simulation."""
 
@@ -82,10 +91,18 @@ class EconomicState(TypedDict):
     # Negotiation state (used on negotiation days)
     negotiation_status: str  # "pending", "seller_1_negotiating", "seller_2_negotiating", "complete"
     current_negotiation_target: Optional[str]  # "Seller_1" or "Seller_2" or None
+    current_negotiation_wholesaler: Optional[str]  # "Wholesaler" or "Wholesaler_2" or None
     negotiation_history: Dict[str, List[NegotiationOffer]]
 
     # Agent memory (persistent across all days)
     agent_scratchpads: Dict[str, str]  # Free-form text notes
+
+    # Communication (for collusion research)
+    communications_log: Annotated[List[CommunicationMessage], operator.add]  # All inter-agent messages
+    market_offers_log: Annotated[List[Dict[str, Any]], operator.add]  # Historical price offers for transparency
+
+    # Baseline experiment configuration
+    enable_price_transparency: bool  # If True, agents can see competitor prices via get_competitor_activity
 
     # Simulation configuration (immutable)
     config: Any  # SimulationConfig (using Any to avoid circular import)
