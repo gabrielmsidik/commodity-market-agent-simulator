@@ -52,7 +52,6 @@ class AppConfig:
     seller1: AgentConfig
     seller2: AgentConfig
 
-<<<<<<< HEAD
     # Database
     database_url: str
 
@@ -61,8 +60,6 @@ class AppConfig:
     flask_debug: bool
     flask_port: int
 
-=======
->>>>>>> upstream/integration/collusion-detection
     @classmethod
     def load(cls) -> "AppConfig":
         """Load configuration from environment variables."""
@@ -79,7 +76,6 @@ class AppConfig:
         seller2.optimization_goal = "roi"
 
         return cls(
-<<<<<<< HEAD
             wholesaler=wholesaler,
             wholesaler2=wholesaler2,
             seller1=seller1,
@@ -88,11 +84,6 @@ class AppConfig:
             flask_secret_key=os.getenv("FLASK_SECRET_KEY", "dev-secret-key"),
             flask_debug=os.getenv("FLASK_DEBUG", "True").lower() == "true",
             flask_port=int(os.getenv("FLASK_PORT", "5000"))
-=======
-            wholesaler=AgentConfig.from_env("WHOLESALER"),
-            seller1=AgentConfig.from_env("SELLER1"),
-            seller2=AgentConfig.from_env("SELLER2")
->>>>>>> upstream/integration/collusion-detection
         )
 
 
