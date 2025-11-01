@@ -70,21 +70,45 @@ Results will be saved to the `logs/` directory.
 
 ### Quick Start - Run All 4 Experiments
 
-Each experiment uses simple configuration flags to enable/disable features:
+Use the simplified experiment runner to run any of the 4 baseline experiments:
 
 ```bash
-# Experiment D: Treatment (Communication ✅ + Transparency ✅)
-PYTHONPATH=. python experiments/baseline/run_21day_treatment.py
+# Experiment A: No Communication, No Transparency (Full Baseline)
+python run_baseline_exp.py --experiment A --days 21 --output-dir outputs/baseline_exp_A
 
-# Experiment A: No Communication (Communication ❌ + Transparency ✅)
-PYTHONPATH=. python experiments/baseline/run_21day_no_communication.py
+# Experiment B: No Communication, With Transparency
+python run_baseline_exp.py --experiment B --days 21 --output-dir outputs/baseline_exp_B
 
-# Experiment B: No Transparency (Communication ✅ + Transparency ❌)
-PYTHONPATH=. python experiments/baseline/run_21day_no_transparency.py
+# Experiment C: With Communication, No Transparency
+python run_baseline_exp.py --experiment C --days 21 --output-dir outputs/baseline_exp_C
 
-# Experiment C: Full Baseline (Communication ❌ + Transparency ❌)
-PYTHONPATH=. python experiments/baseline/run_21day_full_baseline.py
+# Experiment D: Full Treatment (Communication + Transparency)
+python run_baseline_exp.py --experiment D --days 21 --output-dir outputs/baseline_exp_D
 ```
+
+**Run all 4 in parallel** (in separate terminal windows):
+```bash
+# Terminal 1
+python run_baseline_exp.py --experiment A --days 21 --output-dir outputs/baseline_exp_A
+
+# Terminal 2
+python run_baseline_exp.py --experiment B --days 21 --output-dir outputs/baseline_exp_B
+
+# Terminal 3
+python run_baseline_exp.py --experiment C --days 21 --output-dir outputs/baseline_exp_C
+
+# Terminal 4
+python run_baseline_exp.py --experiment D --days 21 --output-dir outputs/baseline_exp_D
+```
+
+### Experiment Configurations
+
+| Experiment | Communication | Price Transparency | Purpose |
+|------------|--------------|-------------------|----------|
+| A | ❌ | ❌ | Full baseline (no coordination possible) |
+| B | ❌ | ✅ | Test transparency alone |
+| C | ✅ | ❌ | Test communication alone |
+| D | ✅ | ✅ | Full treatment (both enabled) |
 
 ### Configuration-Based Architecture
 
@@ -96,14 +120,14 @@ from src.simulation.config import SimulationConfig
 config = SimulationConfig(
     name="my_experiment",
     num_days=21,
-    enable_communication=False,      # Disable wholesaler communication
-    enable_price_transparency=False  # Disable competitor price visibility
+    enable_communication=True,       # Enable wholesaler daily communication
+    enable_price_transparency=True   # Enable competitor price visibility
 )
 ```
 
 **When `enable_communication=False`:**
-- Wholesaler discussion node is removed from workflow
-- No daily message exchange
+- Wholesaler discussion node is skipped in workflow
+- No daily message exchange between wholesalers
 - Expected: 0 messages in communications_log
 
 **When `enable_price_transparency=False`:**
@@ -113,39 +137,30 @@ config = SimulationConfig(
 
 ### Expected Runtimes
 
-- **Experiment D (Treatment)**: ~30-40 minutes
-- **Experiment A (No Communication)**: ~20-30 minutes (faster)
-- **Experiment B (No Transparency)**: ~30-40 minutes
-- **Experiment C (Full Baseline)**: ~20-30 minutes (faster)
+- **Experiment A (No features)**: ~15-20 minutes (fastest)
+- **Experiment B (Transparency only)**: ~15-20 minutes
+- **Experiment C (Communication only)**: ~25-35 minutes
+- **Experiment D (Full treatment)**: ~25-35 minutes
 
-**Total Sequential Runtime**: ~90 minutes
-**Total Cost**: ~$2-4 (GPT-4o-mini via OpenRouter)
+**Total Sequential Runtime**: ~80-110 minutes
+**Total Parallel Runtime**: ~25-35 minutes (if run in parallel)
+**Total Cost**: ~$2-4 (using GPT-4o-mini via OpenRouter)
 
 ### Analyzing Results
 
-Each experiment automatically generates:
+Each experiment saves results to the specified output directory:
 
-1. **Console Output**: Convergence analysis for Days 1, 7, 14, 21
-2. **JSON File**: Full data in `experiments/baseline/results/`
-3. **Log File**: Detailed simulation log in `logs/simulation_*.log`
+1. **Console Output**: Real-time simulation progress with daily summaries
+2. **Log File**: Detailed simulation log in `logs/simulation_*.log`
+3. **Communications Log**: All wholesaler messages (if communication enabled)
+4. **Market Offers Log**: Price history (if transparency enabled)
+5. **Agent Scratchpads**: Strategic notes and learnings
 
-Example output:
-```
-Day 21:
-  Wholesaler:   $85 (0 units)
-  Wholesaler_2: $85 (0 units)
-  Price diff: $0 (0.0%)
-  🔴 IDENTICAL PRICING
-  Convergence: 100.0%
-```
-
-### Detailed Documentation
-
-**See**: `experiments/baseline/README.md` for:
-- Detailed experimental design
-- Implementation details
-- Expected results and hypotheses
-- Troubleshooting guide
+Check the log files for:
+- Wholesaler communication patterns (Experiment C & D)
+- Price convergence over time
+- Negotiation outcomes
+- Final agent performance metrics
 
 ---
 
