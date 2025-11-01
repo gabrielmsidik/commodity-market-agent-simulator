@@ -97,3 +97,6 @@ class EconomicState(TypedDict):
     communications_log: Annotated[List[CommunicationMessage], operator.add]  # All inter-agent messages
     market_offers_log: Annotated[List[Dict[str, Any]], operator.add]  # Historical price offers for transparency
 
+    # Baseline experiment configuration
+    enable_price_transparency: bool  # If True, agents can see competitor prices via get_competitor_activity
+

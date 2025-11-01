@@ -71,47 +71,71 @@ Open your browser to `http://localhost:5000`
 
 ## 🔬 Research: Baseline Collusion Experiments
 
-**For Research Team Members**: Quick start guide for running baseline experiments.
+**For Research Team Members**: All experiments are now configuration-based - no code edits required!
 
-### Running Experiment D (Treatment - Full System) ✅
+### Quick Start - Run All 4 Experiments
 
-This experiment tests the current system with **both** communication and price transparency enabled:
+Each experiment uses simple configuration flags to enable/disable features:
 
 ```bash
-# Run 21-day treatment experiment
+# Experiment D: Treatment (Communication ✅ + Transparency ✅)
 PYTHONPATH=. python experiments/baseline/run_21day_treatment.py
+
+# Experiment A: No Communication (Communication ❌ + Transparency ✅)
+PYTHONPATH=. python experiments/baseline/run_21day_no_communication.py
+
+# Experiment B: No Transparency (Communication ✅ + Transparency ❌)
+PYTHONPATH=. python experiments/baseline/run_21day_no_transparency.py
+
+# Experiment C: Full Baseline (Communication ❌ + Transparency ❌)
+PYTHONPATH=. python experiments/baseline/run_21day_full_baseline.py
 ```
 
-**Configuration**:
-- Communication: ✅ Enabled (daily 2-round message exchange)
-- Price Transparency: ✅ Enabled (competitor pricing visible)
-- Duration: 21 days (covers Days 1 and 21 negotiation cycles)
+### Configuration-Based Architecture
 
-**Runtime**: ~30-40 minutes
-**Cost**: ~$0.50-1.00 (GPT-4o-mini via OpenRouter)
-**Output**: `experiments/baseline/results/experiment_D_treatment_*.json`
+The framework uses two boolean flags in `SimulationConfig`:
 
-**What to Expect**:
-- Full communication logs (42 messages: 2 per day × 21 days)
-- Price convergence analysis (daily comparison of wholesaler prices)
-- Summary statistics (average convergence, identical pricing days)
+```python
+from src.simulation.config import SimulationConfig
+
+config = SimulationConfig(
+    name="my_experiment",
+    num_days=21,
+    enable_communication=False,      # Disable wholesaler communication
+    enable_price_transparency=False  # Disable competitor price visibility
+)
+```
+
+**When `enable_communication=False`:**
+- Wholesaler discussion node is removed from workflow
+- No daily message exchange
+- Expected: 0 messages in communications_log
+
+**When `enable_price_transparency=False`:**
+- `get_competitor_activity()` tool returns empty data
+- Agents cannot monitor competitor prices
+- Expected: No price references in agent scratchpads
+
+### Expected Runtimes
+
+- **Experiment D (Treatment)**: ~30-40 minutes
+- **Experiment A (No Communication)**: ~20-30 minutes (faster)
+- **Experiment B (No Transparency)**: ~30-40 minutes
+- **Experiment C (Full Baseline)**: ~20-30 minutes (faster)
+
+**Total Sequential Runtime**: ~90 minutes
+**Total Cost**: ~$2-4 (GPT-4o-mini via OpenRouter)
 
 ### Analyzing Results
 
-After the experiment completes, check:
+Each experiment automatically generates:
 
-1. **Console Output**: Displays convergence analysis for Days 1, 7, 14, 21
-2. **JSON File**: Contains all communications, market offers, and financial outcomes
-3. **Log File**: Full simulation log in `logs/simulation_*.log`
+1. **Console Output**: Convergence analysis for Days 1, 7, 14, 21
+2. **JSON File**: Full data in `experiments/baseline/results/`
+3. **Log File**: Detailed simulation log in `logs/simulation_*.log`
 
 Example output:
 ```
-Day 1:
-  Wholesaler:   $90 (200 units)
-  Wholesaler_2: $85 (100 units)
-  Price diff: $5 (5.6%)
-  Convergence: 94.4%
-
 Day 21:
   Wholesaler:   $85 (0 units)
   Wholesaler_2: $85 (0 units)
@@ -120,14 +144,13 @@ Day 21:
   Convergence: 100.0%
 ```
 
-### Additional Experiments (A, B, C)
+### Detailed Documentation
 
-To run experiments testing isolated factors:
-- **Experiment A**: No Communication (requires workflow modification)
-- **Experiment B**: No Transparency (requires tools modification)
-- **Experiment C**: Full Baseline (neither feature)
-
-**See**: `experiments/baseline/README.md` for detailed instructions
+**See**: `experiments/baseline/README.md` for:
+- Detailed experimental design
+- Implementation details
+- Expected results and hypotheses
+- Troubleshooting guide
 
 ---
 

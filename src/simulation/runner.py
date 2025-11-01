@@ -24,7 +24,10 @@ class SimulationRunner:
             log_level: Logging level (DEBUG for detailed, INFO for summary)
         """
         self.config = config
-        self.graph = create_simulation_graph()
+        self.graph = create_simulation_graph(
+            enable_communication=config.enable_communication,
+            enable_price_transparency=config.enable_price_transparency
+        )
         self.logger = setup_logger(
             name=f"simulation_{config.name}",
             level=log_level,
@@ -129,9 +132,10 @@ class SimulationRunner:
                 "Seller_2": ""
             },
             "communications_log": [],  # Track all inter-agent communications
-            "market_offers_log": []  # Track historical market offers for transparency
+            "market_offers_log": [],  # Track historical market offers for transparency
+            "enable_price_transparency": self.config.enable_price_transparency  # Baseline experiment configuration
         }
-        
+
         return initial_state
     
     def run(self) -> Dict[str, Any]:

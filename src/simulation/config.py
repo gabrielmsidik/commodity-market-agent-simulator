@@ -62,6 +62,10 @@ class SimulationConfig:
     negotiation_days: list = field(default_factory=lambda: [1, 21, 41, 61, 81])
     max_negotiation_rounds: int = 10
 
+    # Baseline experiment toggles
+    enable_communication: bool = True  # Enable wholesaler daily communication
+    enable_price_transparency: bool = True  # Enable competitor price visibility
+
     def __post_init__(self):
         """Validate configuration after initialization."""
         # Ensure num_days is at least 1
@@ -133,7 +137,9 @@ class SimulationConfig:
             "st_urgency_min": self.st_urgency_min,
             "st_urgency_max": self.st_urgency_max,
             "negotiation_days": self.negotiation_days,
-            "max_negotiation_rounds": self.max_negotiation_rounds
+            "max_negotiation_rounds": self.max_negotiation_rounds,
+            "enable_communication": self.enable_communication,
+            "enable_price_transparency": self.enable_price_transparency
         }
     
     @classmethod

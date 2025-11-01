@@ -116,7 +116,20 @@ class WholesalerTools:
         """
         Get public information about the other wholesaler's market activity.
         Enables price transparency for collusion research.
+
+        Returns empty data if price transparency is disabled (Experiment B, C).
         """
+        # Check if price transparency is enabled
+        if not self.state.get("enable_price_transparency", True):
+            return {
+                "competitor_name": None,
+                "recent_prices": [],
+                "recent_quantities": [],
+                "avg_price_last_5_days": None,
+                "is_active": False,
+                "message": "Price transparency disabled for this experiment"
+            }
+
         other_wholesaler = "Wholesaler_2" if self.agent_name == "Wholesaler" else "Wholesaler"
 
         # Get competitor's recent market offers from market_offers_log
