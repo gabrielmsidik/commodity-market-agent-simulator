@@ -853,9 +853,9 @@ IMPORTANT: Your scratchpad should be concise. Only add NEW insights you learned.
 Note: "accept" means you accept their offer. "reject" ends negotiation.
 The wholesaler has superior market data - try to learn from what they reveal!"""
     
-    if pnl < 0: 
-        print(f"{seller_name} is in neg")
-        prompt += "You are in negative profit, meaning you are incurring losses. Use this opportunity to bring yourself out of red."
+    # if pnl < 0: 
+    #     print(f"{seller_name} is in neg")
+    #     prompt += "You are in negative profit, meaning you are incurring losses. Use this opportunity to bring yourself out of red."
 
     # Call LLM with structured output - returns NegotiationResponse object
     response: NegotiationResponse = llm.invoke(prompt)
