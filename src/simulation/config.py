@@ -75,7 +75,8 @@ class SimulationConfig:
     st_urgency_max: float = 2.5
     
     # Negotiation configuration
-    negotiation_days: list = field(default_factory=lambda: [1, 21, 41, 61, 81])
+    # Default: negotiations every ~5 days for better collusion analysis
+    negotiation_days: list = field(default_factory=lambda: [1, 6, 11, 16, 21, 26, 31, 36, 41, 46, 51, 56, 61, 66, 71, 76, 81])
     max_negotiation_rounds: int = 10
 
     # Baseline experiment toggles (collusion research)
