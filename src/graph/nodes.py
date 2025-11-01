@@ -509,7 +509,8 @@ def _format_communication_history(history: List[Dict]) -> str:
 @log_node_execution
 def wholesaler_make_offer(state: EconomicState) -> Dict[str, Any]:
     """Current wholesaler makes an offer to the current target seller."""
-    config = get_config()
+    config = get_config()  # AppConfig for agent configuration
+    sim_config = state["config"]  # SimulationConfig for simulation parameters
 
     # Determine which wholesaler is active
     wholesaler_name = state.get("current_negotiation_wholesaler", "Wholesaler")
