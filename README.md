@@ -1,14 +1,31 @@
 # Commodity Market Agent Simulator
 
-A 100-day economic simulation testing information asymmetry hypothesis using LangGraph and LLM agents.
+A multi-agent AI safety research project investigating **emergent collusion in LLM-powered markets**. This simulation tests how AI agents with communication capabilities and price transparency can spontaneously develop anti-competitive coordination without explicit instruction.
+
+## Research Context
+
+**Current Phase**: Collusion detection research with multi-wholesaler competitive architecture
+
+**Key Finding (3-day pilot)**: Wholesaler agents achieved 98.1% price convergence with explicit coordination language ("temporary pricing agreement"), demonstrating emergent collusive behavior.
+
+**Active Branch**: `feat-collusion-detection` - Multi-wholesaler communication framework and baseline experiments
 
 ## Features
 
-- **Multi-agent simulation**: Wholesaler and 2 Sellers with different information access
+### Core Simulation
+- **Multi-agent system**: 2 Wholesalers + 2 Sellers competing in commodity market
+- **Free-form communication**: LLM agents exchange strategic messages daily
+- **Price transparency**: Full competitor visibility enabling coordination
 - **Multi-round negotiations**: Up to 10 rounds of offers/counteroffers
 - **Agent memory**: Persistent scratchpads for strategic learning
 - **Configurable parameters**: Customize costs, inventory, demand, and agent behavior
-- **Comprehensive logging**: All simulation data saved to log files for analysis
+- **Comprehensive logging**: All communications, pricing decisions, and simulation data saved
+
+### Research Capabilities
+- **Communication framework**: Two-round daily message exchange between wholesalers
+- **Collusion detection**: Behavioral pattern analysis and price correlation metrics
+- **Information asymmetry**: Configurable visibility of market data
+- **Baseline experiments**: Controlled tests isolating causal factors
 
 ## Quick Start
 
@@ -44,6 +61,93 @@ python run_simulation.py
 ```
 
 Results will be saved to the `logs/` directory.
+
+---
+
+## 🔬 Research: Baseline Collusion Experiments
+
+**For Research Team Members**: All experiments are now configuration-based - no code edits required!
+
+### Quick Start - Run All 4 Experiments
+
+Each experiment uses simple configuration flags to enable/disable features:
+
+```bash
+# Experiment D: Treatment (Communication ✅ + Transparency ✅)
+PYTHONPATH=. python experiments/baseline/run_21day_treatment.py
+
+# Experiment A: No Communication (Communication ❌ + Transparency ✅)
+PYTHONPATH=. python experiments/baseline/run_21day_no_communication.py
+
+# Experiment B: No Transparency (Communication ✅ + Transparency ❌)
+PYTHONPATH=. python experiments/baseline/run_21day_no_transparency.py
+
+# Experiment C: Full Baseline (Communication ❌ + Transparency ❌)
+PYTHONPATH=. python experiments/baseline/run_21day_full_baseline.py
+```
+
+### Configuration-Based Architecture
+
+The framework uses two boolean flags in `SimulationConfig`:
+
+```python
+from src.simulation.config import SimulationConfig
+
+config = SimulationConfig(
+    name="my_experiment",
+    num_days=21,
+    enable_communication=False,      # Disable wholesaler communication
+    enable_price_transparency=False  # Disable competitor price visibility
+)
+```
+
+**When `enable_communication=False`:**
+- Wholesaler discussion node is removed from workflow
+- No daily message exchange
+- Expected: 0 messages in communications_log
+
+**When `enable_price_transparency=False`:**
+- `get_competitor_activity()` tool returns empty data
+- Agents cannot monitor competitor prices
+- Expected: No price references in agent scratchpads
+
+### Expected Runtimes
+
+- **Experiment D (Treatment)**: ~30-40 minutes
+- **Experiment A (No Communication)**: ~20-30 minutes (faster)
+- **Experiment B (No Transparency)**: ~30-40 minutes
+- **Experiment C (Full Baseline)**: ~20-30 minutes (faster)
+
+**Total Sequential Runtime**: ~90 minutes
+**Total Cost**: ~$2-4 (GPT-4o-mini via OpenRouter)
+
+### Analyzing Results
+
+Each experiment automatically generates:
+
+1. **Console Output**: Convergence analysis for Days 1, 7, 14, 21
+2. **JSON File**: Full data in `experiments/baseline/results/`
+3. **Log File**: Detailed simulation log in `logs/simulation_*.log`
+
+Example output:
+```
+Day 21:
+  Wholesaler:   $85 (0 units)
+  Wholesaler_2: $85 (0 units)
+  Price diff: $0 (0.0%)
+  🔴 IDENTICAL PRICING
+  Convergence: 100.0%
+```
+
+### Detailed Documentation
+
+**See**: `experiments/baseline/README.md` for:
+- Detailed experimental design
+- Implementation details
+- Expected results and hypotheses
+- Troubleshooting guide
+
+---
 
 ## Project Structure
 

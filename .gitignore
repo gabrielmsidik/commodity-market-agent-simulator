@@ -50,3 +50,9 @@ logs/
 .DS_Store
 Thumbs.db
 
+# Working documentation/ notes
+workdocs/
+
+# Experimental/test code and scratch work
+scratch/
+

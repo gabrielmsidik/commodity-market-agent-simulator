@@ -24,7 +24,10 @@ class SimulationRunner:
             log_level: Logging level (DEBUG for detailed, INFO for summary)
         """
         self.config = config
-        self.graph = create_simulation_graph()
+        self.graph = create_simulation_graph(
+            enable_communication=config.enable_communication,
+            enable_price_transparency=config.enable_price_transparency
+        )
         self.logger = setup_logger(
             name=f"simulation_{config.name}",
             level=log_level,
@@ -61,7 +64,13 @@ class SimulationRunner:
                     "inventory": s1_inv,
                     "cash": self.config.s1_starting_cash,
                     "cost_per_unit": s1_cost,
-                    "total_cost_incurred": s1_inv * s1_cost,
+                    # Enhanced cost accounting
+                    "initial_inventory": s1_inv,
+                    "initial_inventory_value": s1_inv * s1_cost,
+                    "book_value_remaining": s1_inv * s1_cost,  # Depreciates daily
+                    "accumulated_depreciation": 0.0,
+                    "total_cost_incurred": s1_inv * s1_cost,  # Total investment (initial + purchases)
+                    "incremental_cost_incurred": 0.0,  # Costs from purchases during simulation
                     "total_revenue": 0.0,
                     "private_sales_log": [],
                     "total_transport_costs": 0.0,
@@ -71,7 +80,13 @@ class SimulationRunner:
                     "inventory": s2_inv,
                     "cash": self.config.s2_starting_cash,
                     "cost_per_unit": s2_cost,
+                    # Enhanced cost accounting
+                    "initial_inventory": s2_inv,
+                    "initial_inventory_value": s2_inv * s2_cost,
+                    "book_value_remaining": s2_inv * s2_cost,
+                    "accumulated_depreciation": 0.0,
                     "total_cost_incurred": s2_inv * s2_cost,
+                    "incremental_cost_incurred": 0.0,
                     "total_revenue": 0.0,
                     "private_sales_log": [],
                     "total_transport_costs": 0.0,
@@ -81,7 +96,27 @@ class SimulationRunner:
                     "inventory": 0,
                     "cash": self.config.wholesaler_starting_cash,
                     "cost_per_unit": 0,
+                    # Enhanced cost accounting
+                    "initial_inventory": 0,
+                    "initial_inventory_value": 0.0,
+                    "book_value_remaining": 0.0,
+                    "accumulated_depreciation": 0.0,
                     "total_cost_incurred": 0.0,
+                    "incremental_cost_incurred": 0.0,
+                    "total_revenue": 0.0,
+                    "private_sales_log": []
+                },
+                "Wholesaler_2": {
+                    "inventory": 0,
+                    "cash": self.config.wholesaler_starting_cash,
+                    "cost_per_unit": 0,
+                    # Enhanced cost accounting
+                    "initial_inventory": 0,
+                    "initial_inventory_value": 0.0,
+                    "book_value_remaining": 0.0,
+                    "accumulated_depreciation": 0.0,
+                    "total_cost_incurred": 0.0,
+                    "incremental_cost_incurred": 0.0,
                     "total_revenue": 0.0,
                     "private_sales_log": [],
                     "total_transport_costs": 0.0,
@@ -92,16 +127,21 @@ class SimulationRunner:
             "daily_transport_costs": {},
             "negotiation_status": "pending",
             "current_negotiation_target": None,
+            "current_negotiation_wholesaler": None,  # Track which wholesaler is negotiating
             "negotiation_history": {
-                "Seller_1": [],
-                "Seller_2": []
+                "Seller_1": {"Wholesaler": [], "Wholesaler_2": []},
+                "Seller_2": {"Wholesaler": [], "Wholesaler_2": []}
             },
             "agent_scratchpads": {
                 "Wholesaler": "",
+                "Wholesaler_2": "",
                 "Seller_1": "",
                 "Seller_2": ""
             },
-            "config": self.config
+            "communications_log": [],  # Track all inter-agent communications
+            "market_offers_log": [],  # Track historical market offers for transparency
+            "enable_price_transparency": self.config.enable_price_transparency,  # Baseline experiment configuration
+            "config": self.config  # Add config to state (upstream improvement)
         }
 
         return initial_state
@@ -131,6 +171,7 @@ class SimulationRunner:
         self.logger.info(f"  Seller_2: Cost=${initial_state['agent_ledgers']['Seller_2']['cost_per_unit']}, "
                         f"Inventory={initial_state['agent_ledgers']['Seller_2']['inventory']}")
         self.logger.info(f"  Wholesaler: Inventory={initial_state['agent_ledgers']['Wholesaler']['inventory']}")
+        self.logger.info(f"  Wholesaler_2: Inventory={initial_state['agent_ledgers']['Wholesaler_2']['inventory']}")
         self.logger.info(f"  Total Shoppers: {len(initial_state['shopper_database'])}")
         self.logger.info("")
 
@@ -271,12 +312,30 @@ class SimulationRunner:
                                     history = value
                                     if history:
                                         summary = {}
-                                        for seller, rounds in history.items():
-                                            if rounds:
-                                                # Only show the latest round (live negotiation)
-                                                latest = rounds[-1]
+                                        for seller, wholesalers in history.items():
+                                            if isinstance(wholesalers, dict):
+                                                # New nested structure: {Seller: {Wholesaler: [], Wholesaler_2: []}}
+                                                seller_summary = {}
+                                                for wholesaler, rounds in wholesalers.items():
+                                                    if rounds:
+                                                        latest = rounds[-1]
+                                                        seller_summary[wholesaler] = {
+                                                            "total_rounds": len(rounds),
+                                                            "latest_offer": {
+                                                                "agent": latest["agent"],
+                                                                "price": latest["price"],
+                                                                "quantity": latest["quantity"],
+                                                                "action": latest["action"]
+                                                            }
+                                                        }
+                                                    else:
+                                                        seller_summary[wholesaler] = {"total_rounds": 0}
+                                                summary[seller] = seller_summary
+                                            elif wholesalers:
+                                                # Old flat structure (backward compatibility)
+                                                latest = wholesalers[-1]
                                                 summary[seller] = {
-                                                    "total_rounds": len(rounds),
+                                                    "total_rounds": len(wholesalers),
                                                     "latest_offer": {
                                                         "agent": latest["agent"],
                                                         "price": latest["price"],
@@ -354,8 +413,8 @@ class SimulationRunner:
                     for event in events:
                         for node_name, node_output in event.items():
                             if node_output:
-                                # Handle append-only fields (Annotated[List[Dict], operator.add])
-                                append_only_fields = ["market_log", "unmet_demand_log", "wholesale_trades_log"]
+                                # Handle append-only fields (Annotated[List[...], operator.add])
+                                append_only_fields = ["market_log", "unmet_demand_log", "wholesale_trades_log", "communications_log", "market_offers_log"]
 
                                 for key, value in node_output.items():
                                     if key in append_only_fields:
@@ -420,7 +479,7 @@ class SimulationRunner:
                            f"{total_volume} units, avg price ${avg_price:.2f}")
 
             # Log by seller
-            for seller in ["Seller_1", "Seller_2", "Wholesaler"]:
+            for seller in ["Seller_1", "Seller_2", "Wholesaler", "Wholesaler_2"]:
                 seller_trades = [t for t in market_trades if t["seller"] == seller]
                 if seller_trades:
                     volume = sum(t["quantity"] for t in seller_trades)
@@ -431,6 +490,17 @@ class SimulationRunner:
         if today_unmet:
             total_unmet = sum(u["quantity"] for u in today_unmet)
             self.logger.info(f"  Unmet Demand: {total_unmet} units")
+
+        # Log communications (for collusion analysis)
+        today_comms = [c for c in state.get("communications_log", []) if c["day"] == day]
+        if today_comms:
+            self.logger.info(f"  [WHOLESALER COMMUNICATION]")
+            for comm in today_comms:
+                self.logger.info(f"    Round {comm['round']}: {comm['from_agent']} → {comm['to_agent']}")
+                # Log full message with indentation for readability
+                message_lines = comm["message"].split('\n')
+                for line in message_lines:
+                    self.logger.info(f"      {line}")
 
         # Log inventory levels
         ledgers = state["agent_ledgers"]
@@ -460,13 +530,22 @@ class SimulationRunner:
         self.logger.info(f"  (Shoppers who couldn't purchase due to high prices or no inventory)")
         self.logger.info("")
         self.logger.info("AGENT PERFORMANCE:")
-        for agent in ["Seller_1", "Seller_2", "Wholesaler"]:
+        for agent in ["Seller_1", "Seller_2", "Wholesaler", "Wholesaler_2"]:
             perf = summary["agent_performance"][agent]
             self.logger.info(f"  {agent}:")
+            # Use upstream's cleaner PnL format
             self.logger.info(f"    💰 PROFIT & LOSS (PnL): ${perf['profit']:.2f}")
             self.logger.info(f"       - Revenue: ${perf['revenue']:.2f}")
             self.logger.info(f"       - Costs: ${perf['costs']:.2f}")
             self.logger.info(f"    Final Cash: ${perf['final_cash']:.2f}")
+            # Add detailed metrics from HEAD
+            self.logger.info(f"    Net Position: ${perf['net_position']:.2f}")
+            self.logger.info(f"    Gross Profit: ${perf['gross_profit']:.2f}")
+            self.logger.info(f"    ROI: {perf['roi']:.1%}")
+            self.logger.info(f"    Cost Recovery Rate: {perf['cost_recovery_rate']:.1%}")
+            self.logger.info(f"    Inventory Turnover: {perf['inventory_turnover']:.1%}")
+            self.logger.info(f"    Book Value Remaining: ${perf['book_value_remaining']:.2f}")
+            self.logger.info(f"    Accumulated Depreciation: ${perf['accumulated_depreciation']:.2f}")
             self.logger.info(f"    Market Sales (to shoppers): {perf['market_units_sold']} units")
             self.logger.info(f"    Wholesale Sales (to wholesaler): {perf['wholesale_units_sold']} units")
             self.logger.info(f"    Wholesale Purchases (from sellers): {perf['wholesale_units_bought']} units")
@@ -498,7 +577,7 @@ class SimulationRunner:
         self.logger.info("AGENT SCRATCHPADS (Final State):")
         self.logger.info("")
         agent_scratchpads = final_state.get("agent_scratchpads", {})
-        for agent in ["Wholesaler", "Seller_1", "Seller_2"]:
+        for agent in ["Wholesaler", "Wholesaler_2", "Seller_1", "Seller_2"]:
             scratchpad = agent_scratchpads.get(agent, "")
             self.logger.info(f"  {agent}:")
             if scratchpad:
@@ -548,11 +627,9 @@ class SimulationRunner:
         # Calculate unmet demand
         total_unmet = sum(entry["quantity"] for entry in unmet_demand_log)
 
-        # Agent profitability
+        # Agent profitability with enhanced metrics
         agent_profits = {}
         for agent_name, ledger in ledgers.items():
-            profit = ledger["total_revenue"] - ledger["total_cost_incurred"]
-
             # Calculate market units sold (to shoppers)
             market_units_sold = sum(sale["quantity"] for sale in ledger["private_sales_log"])
 
@@ -568,10 +645,52 @@ class SimulationRunner:
                 if trade["buyer"] == agent_name
             )
 
+            # Total units sold
+            total_units_sold = market_units_sold + wholesale_units_sold
+
+            # Enhanced metrics
+            initial_investment = ledger.get("initial_inventory_value", 0.0)
+            revenue = ledger["total_revenue"]
+            total_cost = ledger["total_cost_incurred"]
+
+            # Gross Profit (margin on actual sales, not counting unsold inventory)
+            if total_units_sold > 0:
+                avg_cost_per_unit = ledger.get("cost_per_unit", 0)
+                cogs = total_units_sold * avg_cost_per_unit
+                gross_profit = revenue - cogs
+            else:
+                gross_profit = 0.0
+
+            # Net Position (total P&L including initial investment)
+            net_position = revenue - total_cost
+
+            # Cost Recovery Rate
+            cost_recovery_rate = (revenue / initial_investment) if initial_investment > 0 else 0.0
+
+            # ROI
+            roi = (net_position / initial_investment) if initial_investment > 0 else 0.0
+
+            # Inventory Turnover
+            initial_inventory = ledger.get("initial_inventory", 0)
+            inventory_turnover = (total_units_sold / initial_inventory) if initial_inventory > 0 else 0.0
+
+            # Book value and depreciation
+            book_value = ledger.get("book_value_remaining", initial_investment)
+            accumulated_depreciation = ledger.get("accumulated_depreciation", 0.0)
+
             agent_profits[agent_name] = {
-                "revenue": ledger["total_revenue"],
-                "costs": ledger["total_cost_incurred"],
-                "profit": profit,
+                "revenue": revenue,
+                "costs": total_cost,
+                "profit": net_position,  # Keep as "profit" for backward compatibility
+                # Enhanced metrics
+                "gross_profit": gross_profit,
+                "net_position": net_position,
+                "cost_recovery_rate": cost_recovery_rate,
+                "roi": roi,
+                "inventory_turnover": inventory_turnover,
+                "book_value_remaining": book_value,
+                "accumulated_depreciation": accumulated_depreciation,
+                # Sales breakdown
                 "market_units_sold": market_units_sold,
                 "wholesale_units_sold": wholesale_units_sold,
                 "wholesale_units_bought": wholesale_units_bought,
