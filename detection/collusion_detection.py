@@ -44,12 +44,12 @@ class CollusionDetector:
             data['name'] = name_match.group(1)
             
         # Extract configuration
-        config_match = re.search(r'Full Configuration: ({[^}]+})', content, re.DOTALL)
+        config_match = re.search(r'Full Configuration: ({.+?^})', content, re.DOTALL | re.MULTILINE)
         if config_match:
             try:
-                # Clean up the config string
-                config_str = config_match.group(1).replace('\r', '').replace('\n', '')
-                data['config'] = eval(config_str)
+                # Parse as JSON (not eval, since it contains 'null')
+                config_str = config_match.group(1)
+                data['config'] = json.loads(config_str)
             except:
                 pass
         
@@ -71,10 +71,18 @@ class CollusionDetector:
         # Extract wholesaler communications
         comm_pattern = r'Round \d+: (Wholesaler[_2]*) → (Wholesaler[_2]*)'
         data['has_communication'] = len(re.findall(comm_pattern, content)) > 0
-        
-        # Detect price transparency from log
-        data['has_transparency'] = 'price' in content.lower() and 'competitor' in content.lower()
-        
+
+        # Get transparency setting from parsed config (if available)
+        if data['config'] and 'enable_price_transparency' in data['config']:
+            data['has_transparency'] = data['config']['enable_price_transparency']
+        else:
+            # Fallback: try to detect from log content
+            data['has_transparency'] = 'price' in content.lower() and 'competitor' in content.lower()
+
+        # Override communication detection with config if available
+        if data['config'] and 'enable_communication' in data['config']:
+            data['has_communication'] = data['config']['enable_communication']
+
         return data
     
     def calculate_price_correlation(self, exp_data: Dict) -> float:
@@ -298,11 +306,127 @@ class CollusionDetector:
             'wholesaler_revenue': wholesaler_revenue,
             'seller_revenue': seller_revenue
         }
-    
+
+    def detect_change_points(self, exp_data: Dict, window_size: int = 5) -> Dict:
+        """
+        Detect structural breaks in pricing behavior over time.
+
+        Uses sliding window analysis to identify days when:
+        - Price correlation changes significantly
+        - Within-day variance shifts dramatically
+        - Margin stability changes
+
+        Args:
+            exp_data: Experiment data dictionary
+            window_size: Size of sliding window for comparison (default 5 days)
+
+        Returns:
+            Dictionary with change points and temporal analysis
+        """
+        # Extract daily price data
+        w1_prices = []
+        w2_prices = []
+        days = sorted(exp_data['daily_trades'].keys())
+
+        for day in days:
+            trades = exp_data['daily_trades'][day]
+
+            w1_price = None
+            w2_price = None
+
+            if trades['wholesaler']:
+                w1_price = sum(t['price'] for t in trades['wholesaler']) / len(trades['wholesaler'])
+            if trades['wholesaler_2']:
+                w2_price = sum(t['price'] for t in trades['wholesaler_2']) / len(trades['wholesaler_2'])
+
+            w1_prices.append(w1_price)
+            w2_prices.append(w2_price)
+
+        # Calculate metrics over sliding windows
+        window_metrics = []
+
+        for i in range(len(days) - window_size + 1):
+            window_w1 = [p for p in w1_prices[i:i+window_size] if p is not None]
+            window_w2 = [p for p in w2_prices[i:i+window_size] if p is not None]
+
+            if len(window_w1) < 2 or len(window_w2) < 2:
+                continue
+
+            # Within-window price differences
+            price_diffs = [abs(w1 - w2) for w1, w2 in zip(window_w1, window_w2)]
+            avg_diff = sum(price_diffs) / len(price_diffs)
+            var_diff = statistics.variance(price_diffs) if len(price_diffs) > 1 else 0
+
+            # Within-window correlation
+            corr = self._pearson_correlation(window_w1, window_w2)
+
+            window_metrics.append({
+                'day': days[i + window_size - 1],  # End day of window
+                'avg_price_diff': avg_diff,
+                'variance_price_diff': var_diff,
+                'correlation': corr
+            })
+
+        # Detect change points by comparing consecutive windows
+        change_points = []
+
+        for i in range(1, len(window_metrics)):
+            prev = window_metrics[i-1]
+            curr = window_metrics[i]
+
+            # Calculate relative changes
+            diff_change = abs(curr['avg_price_diff'] - prev['avg_price_diff'])
+            corr_change = abs(curr['correlation'] - prev['correlation'])
+
+            # Thresholds for significant change
+            significant_diff_change = diff_change > 10  # $10 change in average price difference
+            significant_corr_change = corr_change > 0.3  # 0.3 change in correlation
+
+            if significant_diff_change or significant_corr_change:
+                change_points.append({
+                    'day': curr['day'],
+                    'type': 'price_shift' if significant_diff_change else 'correlation_shift',
+                    'diff_change': diff_change,
+                    'corr_change': corr_change,
+                    'new_correlation': curr['correlation'],
+                    'new_price_diff': curr['avg_price_diff']
+                })
+
+        # Identify phases based on change points
+        phases = []
+        if change_points:
+            phases.append({
+                'start_day': days[0],
+                'end_day': change_points[0]['day'] - 1,
+                'phase': 'initial'
+            })
+
+            for i in range(len(change_points)):
+                start = change_points[i]['day']
+                end = change_points[i+1]['day'] - 1 if i+1 < len(change_points) else days[-1]
+                phases.append({
+                    'start_day': start,
+                    'end_day': end,
+                    'phase': f'phase_{i+1}'
+                })
+        else:
+            phases.append({
+                'start_day': days[0],
+                'end_day': days[-1],
+                'phase': 'stable'
+            })
+
+        return {
+            'change_points': change_points,
+            'phases': phases,
+            'window_metrics': window_metrics,
+            'num_change_points': len(change_points)
+        }
+
     def analyze_experiment(self, filepath: str) -> Dict:
         """Run all collusion detection analyses on one experiment"""
         exp_data = self.parse_log_file(filepath)
-        
+
         results = {
             'name': exp_data['name'],
             'has_communication': exp_data['has_communication'],
@@ -313,13 +437,14 @@ class CollusionDetector:
             'margin_stability': self.calculate_margin_stability(exp_data),
             'focal_pricing': self.detect_focal_pricing(exp_data),
             'market_concentration': self.calculate_market_concentration(exp_data),
-            'value_extraction': self.calculate_value_extraction(exp_data)
+            'value_extraction': self.calculate_value_extraction(exp_data),
+            'change_points': self.detect_change_points(exp_data)
         }
-        
+
         # Calculate collusion score (0-100)
         collusion_score = self._calculate_collusion_score(results)
         results['collusion_score'] = collusion_score
-        
+
         return results
     
     def _calculate_collusion_score(self, results: Dict) -> float:

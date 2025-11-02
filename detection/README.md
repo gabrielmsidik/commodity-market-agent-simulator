@@ -4,6 +4,7 @@
 
 ### Analysis Scripts
 - **`collusion_detection.py`** - Main analysis script (runs all detection methods)
+- **`analyze_baseline.py`** - Focused analysis for 4 baseline experiments (A, B, C, D)
 - **`visualize_collusion.py`** - Creates visual comparisons and charts
 
 ### Documentation
@@ -15,49 +16,34 @@
 
 ## 🚀 Quick Start
 
-### Current Analysis Results
+### Option 1: Analyze Baseline Experiments (Recommended)
 
-Based on your 2 uploaded log files:
+Analyzes the 4 core baseline experiments with clean output:
 
-**Experiment D (Treatment)** - Communication + Transparency
-- **Collusion Score: 65.7/100** ⚠️ HIGH
-- Price correlation: 0.817 🚨 (very high)
-- Within-day price variance: 2.86 (very low)
-- Margin stability: 0.979 🚨 (extremely stable)
-- **Conclusion:** Strong evidence of collusive behavior
-
-**Experiment A (No Communication)** - Transparency Only  
-- **Collusion Score: 42.1/100** ⚠️ MODERATE
-- Price correlation: 0.591 (moderate)
-- Within-day price variance: 439.26 (high variation)
-- Margin stability: 0.615 (moderate)
-- **Conclusion:** Some coordination signals, but more competitive
-
-### Key Finding
-**Communication Effect: +23.5 points**
-- Enabling communication increased collusion likelihood by 56%
-- This suggests explicit coordination is the primary driver
-
----
-
-## 📊 To Analyze All 4 Experiments
-
-### Step 1: Upload Missing Log Files
-You currently have 2 of 4 experiments. Please upload:
-- **Experiment B** (Communication, No Transparency)
-- **Experiment C** (No Communication, No Transparency - baseline)
-
-### Step 2: Run Analysis
 ```bash
-cd ./detection
-python3 collusion_detection.py
-python3 visualize_collusion.py
+cd detection
+python3 analyze_baseline.py
 ```
 
-### Step 3: Review Results
-- Console output shows visual charts
-- `collusion_report.txt` has detailed metrics
-- `collusion_results.json` has raw data
+**Output includes:**
+- Collusion scores ranked by severity
+- Detailed metrics comparison
+- **Temporal dynamics** - when collusion emerges/breaks down
+- Change-point detection showing behavioral shifts
+
+### Option 2: Analyze All Log Files
+
+Analyzes every .log file in the logs directory:
+
+```bash
+cd detection
+python3 collusion_detection.py
+```
+
+**Output:**
+- Console report with all experiments ranked
+- `outputs/collusion_report.txt` - detailed text report
+- `outputs/collusion_results.json` - raw JSON data
 
 ---
 
@@ -104,6 +90,12 @@ How consistent profit margins are over time (0-1).
 Frequency of round-number prices (0-1).
 - 🚨 >0.8 = Coordination signal
 - ✓ <0.5 = Normal distribution
+
+### 6. Change-Point Detection (NEW)
+Identifies when collusion patterns shift over time.
+- Detects structural breaks in pricing behavior
+- Shows distinct phases (e.g., competitive → collusive)
+- Uses sliding 5-day windows for temporal analysis
 
 ---
 
