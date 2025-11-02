@@ -1,0 +1,493 @@
+2025-11-02 11:44:18 - simulation_baseline_A_no_communication_21day - INFO - Logging to file: logs\simulation_20251102_114418.log
+2025-11-02 11:44:18 - simulation_baseline_A_no_communication_21day - INFO - ================================================================================
+2025-11-02 11:44:18 - simulation_baseline_A_no_communication_21day - INFO - Starting Simulation: baseline_A_no_communication_21day
+2025-11-02 11:44:18 - simulation_baseline_A_no_communication_21day - INFO - Description: 21-day experiment: no communication, has transparency
+2025-11-02 11:44:18 - simulation_baseline_A_no_communication_21day - INFO - Duration: 21 days
+2025-11-02 11:44:18 - simulation_baseline_A_no_communication_21day - INFO - Full Configuration: {
+  "name": "baseline_A_no_communication_21day",
+  "description": "21-day experiment: no communication, has transparency",
+  "num_days": 21,
+  "s1_cost_min": 58,
+  "s1_cost_max": 62,
+  "s1_inv_min": 7800,
+  "s1_inv_max": 8200,
+  "s1_starting_cash": 0.0,
+  "s2_cost_min": 68,
+  "s2_cost_max": 72,
+  "s2_inv_min": 1900,
+  "s2_inv_max": 2100,
+  "s2_starting_cash": 0.0,
+  "wholesaler_starting_cash": 50000.0,
+  "total_shoppers": 400,
+  "long_term_ratio": 0.7,
+  "lt_demand_min": 20,
+  "lt_demand_max": 50,
+  "lt_window_min": 50,
+  "lt_window_max": 90,
+  "lt_base_price_min": 80.0,
+  "lt_base_price_max": 100.0,
+  "lt_max_price_min": 110.0,
+  "lt_max_price_max": 130.0,
+  "lt_urgency_min": 0.7,
+  "lt_urgency_max": 1.2,
+  "st_demand_min": 30,
+  "st_demand_max": 50,
+  "st_window_min": 10,
+  "st_window_max": 20,
+  "st_base_price_min": 100.0,
+  "st_base_price_max": 120.0,
+  "st_max_price_min": 120.0,
+  "st_max_price_max": 150.0,
+  "st_urgency_min": 1.5,
+  "st_urgency_max": 2.5,
+  "negotiation_days": [
+    1,
+    6,
+    11,
+    16,
+    21,
+    26,
+    31,
+    36,
+    41,
+    46,
+    51,
+    56,
+    61,
+    66,
+    71,
+    76,
+    81
+  ],
+  "max_negotiation_rounds": 10,
+  "enable_communication": false,
+  "enable_price_transparency": true,
+  "transport_cost_per_unit": 1,
+  "transport_cost_enabled": true
+}
+2025-11-02 11:44:18 - simulation_baseline_A_no_communication_21day - INFO - ================================================================================
+2025-11-02 11:44:18 - simulation_baseline_A_no_communication_21day - INFO - Initial Setup:
+2025-11-02 11:44:18 - simulation_baseline_A_no_communication_21day - INFO -   Seller_1: Cost=$61, Inventory=7993
+2025-11-02 11:44:18 - simulation_baseline_A_no_communication_21day - INFO -   Seller_2: Cost=$68, Inventory=2047
+2025-11-02 11:44:18 - simulation_baseline_A_no_communication_21day - INFO -   Wholesaler: Inventory=0
+2025-11-02 11:44:18 - simulation_baseline_A_no_communication_21day - INFO -   Wholesaler_2: Inventory=0
+2025-11-02 11:44:18 - simulation_baseline_A_no_communication_21day - INFO -   Total Shoppers: 400
+2025-11-02 11:44:18 - simulation_baseline_A_no_communication_21day - INFO - 
+2025-11-02 11:44:18 - simulation_baseline_A_no_communication_21day - INFO - --- Day 1 ---
+2025-11-02 11:52:06 - simulation_baseline_A_no_communication_21day - INFO -   [NEGOTIATION DAY]
+2025-11-02 11:52:06 - simulation_baseline_A_no_communication_21day - INFO -   Market: 4 trades, 640 units, avg price $87.34
+2025-11-02 11:52:06 - simulation_baseline_A_no_communication_21day - INFO -   Unmet Demand: 10374 units
+2025-11-02 11:52:06 - simulation_baseline_A_no_communication_21day - INFO - --- Day 2 ---
+2025-11-02 11:53:33 - simulation_baseline_A_no_communication_21day - INFO -   Market: 4 trades, 600 units, avg price $86.60
+2025-11-02 11:53:33 - simulation_baseline_A_no_communication_21day - INFO -   Unmet Demand: 10531 units
+2025-11-02 11:53:33 - simulation_baseline_A_no_communication_21day - INFO - --- Day 3 ---
+2025-11-02 11:54:51 - simulation_baseline_A_no_communication_21day - INFO -   Market: 4 trades, 516 units, avg price $85.69
+2025-11-02 11:54:51 - simulation_baseline_A_no_communication_21day - INFO -   Unmet Demand: 10800 units
+2025-11-02 11:54:51 - simulation_baseline_A_no_communication_21day - INFO - --- Day 4 ---
+2025-11-02 11:56:12 - simulation_baseline_A_no_communication_21day - INFO -   Market: 4 trades, 515 units, avg price $85.72
+2025-11-02 11:56:12 - simulation_baseline_A_no_communication_21day - INFO -   Unmet Demand: 10900 units
+2025-11-02 11:56:12 - simulation_baseline_A_no_communication_21day - INFO - --- Day 5 ---
+2025-11-02 11:57:26 - simulation_baseline_A_no_communication_21day - INFO -   Market: 4 trades, 515 units, avg price $85.72
+2025-11-02 11:57:26 - simulation_baseline_A_no_communication_21day - INFO -   Unmet Demand: 10548 units
+2025-11-02 11:57:26 - simulation_baseline_A_no_communication_21day - INFO - --- Day 6 ---
+2025-11-02 12:06:28 - simulation_baseline_A_no_communication_21day - INFO -   [NEGOTIATION DAY]
+2025-11-02 12:06:28 - simulation_baseline_A_no_communication_21day - INFO -   Market: 4 trades, 540 units, avg price $85.65
+2025-11-02 12:06:28 - simulation_baseline_A_no_communication_21day - INFO -   Unmet Demand: 10578 units
+2025-11-02 12:06:28 - simulation_baseline_A_no_communication_21day - INFO - --- Day 7 ---
+2025-11-02 12:07:45 - simulation_baseline_A_no_communication_21day - INFO -   Market: 4 trades, 545 units, avg price $85.65
+2025-11-02 12:07:45 - simulation_baseline_A_no_communication_21day - INFO -   Unmet Demand: 10221 units
+2025-11-02 12:07:45 - simulation_baseline_A_no_communication_21day - INFO - --- Day 8 ---
+2025-11-02 12:08:56 - simulation_baseline_A_no_communication_21day - INFO -   Market: 4 trades, 550 units, avg price $85.67
+2025-11-02 12:08:56 - simulation_baseline_A_no_communication_21day - INFO -   Unmet Demand: 9890 units
+2025-11-02 12:08:56 - simulation_baseline_A_no_communication_21day - INFO - --- Day 9 ---
+2025-11-02 12:10:04 - simulation_baseline_A_no_communication_21day - INFO -   Market: 4 trades, 555 units, avg price $85.69
+2025-11-02 12:10:04 - simulation_baseline_A_no_communication_21day - INFO -   Unmet Demand: 9508 units
+2025-11-02 12:10:04 - simulation_baseline_A_no_communication_21day - INFO - --- Day 10 ---
+2025-11-02 12:11:20 - simulation_baseline_A_no_communication_21day - INFO -   Market: 4 trades, 555 units, avg price $85.69
+2025-11-02 12:11:20 - simulation_baseline_A_no_communication_21day - INFO -   Unmet Demand: 8953 units
+2025-11-02 12:11:20 - simulation_baseline_A_no_communication_21day - INFO - Progress: 10/21 days completed
+2025-11-02 12:11:20 - simulation_baseline_A_no_communication_21day - INFO - --- Day 11 ---
+2025-11-02 12:18:03 - simulation_baseline_A_no_communication_21day - INFO -   [NEGOTIATION DAY]
+2025-11-02 12:18:03 - simulation_baseline_A_no_communication_21day - INFO -   Market: 4 trades, 600 units, avg price $84.97
+2025-11-02 12:18:03 - simulation_baseline_A_no_communication_21day - INFO -   Unmet Demand: 8353 units
+2025-11-02 12:18:03 - simulation_baseline_A_no_communication_21day - INFO - --- Day 12 ---
+2025-11-02 12:19:18 - simulation_baseline_A_no_communication_21day - INFO -   Market: 4 trades, 565 units, avg price $84.27
+2025-11-02 12:19:18 - simulation_baseline_A_no_communication_21day - INFO -   Unmet Demand: 7788 units
+2025-11-02 12:19:18 - simulation_baseline_A_no_communication_21day - INFO - --- Day 13 ---
+2025-11-02 12:20:27 - simulation_baseline_A_no_communication_21day - INFO -   Market: 4 trades, 611 units, avg price $84.23
+2025-11-02 12:20:27 - simulation_baseline_A_no_communication_21day - INFO -   Unmet Demand: 7177 units
+2025-11-02 12:20:27 - simulation_baseline_A_no_communication_21day - INFO - --- Day 14 ---
+2025-11-02 12:21:45 - simulation_baseline_A_no_communication_21day - INFO -   Market: 3 trades, 580 units, avg price $81.78
+2025-11-02 12:21:45 - simulation_baseline_A_no_communication_21day - INFO -   Unmet Demand: 6597 units
+2025-11-02 12:21:45 - simulation_baseline_A_no_communication_21day - INFO - --- Day 15 ---
+2025-11-02 12:23:10 - simulation_baseline_A_no_communication_21day - INFO -   Market: 3 trades, 530 units, avg price $84.21
+2025-11-02 12:23:10 - simulation_baseline_A_no_communication_21day - INFO -   Unmet Demand: 6067 units
+2025-11-02 12:23:10 - simulation_baseline_A_no_communication_21day - INFO - --- Day 16 ---
+2025-11-02 12:27:17 - simulation_baseline_A_no_communication_21day - INFO -   [NEGOTIATION DAY]
+2025-11-02 12:27:17 - simulation_baseline_A_no_communication_21day - INFO -   Market: 3 trades, 448 units, avg price $82.28
+2025-11-02 12:27:17 - simulation_baseline_A_no_communication_21day - INFO -   Unmet Demand: 5619 units
+2025-11-02 12:27:17 - simulation_baseline_A_no_communication_21day - INFO - --- Day 17 ---
+2025-11-02 12:28:27 - simulation_baseline_A_no_communication_21day - INFO -   Market: 3 trades, 445 units, avg price $81.80
+2025-11-02 12:28:27 - simulation_baseline_A_no_communication_21day - INFO -   Unmet Demand: 5174 units
+2025-11-02 12:28:27 - simulation_baseline_A_no_communication_21day - INFO - --- Day 18 ---
+2025-11-02 12:29:43 - simulation_baseline_A_no_communication_21day - INFO -   Market: 2 trades, 260 units, avg price $80.00
+2025-11-02 12:29:43 - simulation_baseline_A_no_communication_21day - INFO -   Unmet Demand: 4914 units
+2025-11-02 12:29:43 - simulation_baseline_A_no_communication_21day - INFO - --- Day 19 ---
+2025-11-02 12:30:50 - simulation_baseline_A_no_communication_21day - INFO -   Market: 2 trades, 260 units, avg price $76.96
+2025-11-02 12:30:50 - simulation_baseline_A_no_communication_21day - INFO -   Unmet Demand: 4654 units
+2025-11-02 12:30:50 - simulation_baseline_A_no_communication_21day - INFO - --- Day 20 ---
+2025-11-02 12:32:16 - simulation_baseline_A_no_communication_21day - INFO -   Market: 1 trades, 110 units, avg price $78.00
+2025-11-02 12:32:16 - simulation_baseline_A_no_communication_21day - INFO -   Unmet Demand: 4544 units
+2025-11-02 12:32:16 - simulation_baseline_A_no_communication_21day - INFO - Progress: 20/21 days completed
+2025-11-02 12:32:16 - simulation_baseline_A_no_communication_21day - INFO - --- Day 21 ---
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -   [NEGOTIATION DAY]
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -   Market: 1 trades, 100 units, avg price $74.00
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -   Unmet Demand: 4444 units
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO - 
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO - ================================================================================
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO - Simulation Complete!
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO - Duration: 3001.18 seconds
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO - ================================================================================
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO - 
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO - ================================================================================
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO - FINAL SIMULATION SUMMARY
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO - ================================================================================
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO - 
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO - MARKET TRADES (B2C - Sellers to Shoppers):
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -   Total Trades: 70
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -   Total Volume: 10040 units
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -   Average Price: $84.43
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO - 
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO - WHOLESALE TRADES (B2B - Sellers to Wholesaler):
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -   Total Trades: 15
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -   Total Volume: 3650 units
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -   Average Price: $54.89
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO - 
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO - UNMET DEMAND:
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -   Total Unmet Demand: 167634 units
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -   (Shoppers who couldn't purchase due to high prices or no inventory)
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO - 
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO - AGENT PERFORMANCE:
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -   Seller_1:
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     💰 PROFIT & LOSS (PnL): $113289.00
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -        - Revenue: $600862.00
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -        - Costs: $487573.00
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     Final Cash: $595219.00
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     Net Position: $113289.00
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     Gross Profit: $113289.00
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     ROI: 23.2%
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     Cost Recovery Rate: 123.2%
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     Inventory Turnover: 100.0%
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     Book Value Remaining: $0.00
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     Accumulated Depreciation: $487573.00
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     Market Sales (to shoppers): 5643 units
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     Wholesale Sales (to wholesaler): 2350 units
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     Wholesale Purchases (from sellers): 0 units
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     Remaining Inventory: 0 units
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -   Seller_2:
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     💰 PROFIT & LOSS (PnL): $-188.00
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -        - Revenue: $139008.00
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -        - Costs: $139196.00
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     Final Cash: $138261.00
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     Net Position: $-188.00
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     Gross Profit: $-188.00
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     ROI: -0.1%
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     Cost Recovery Rate: 99.9%
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     Inventory Turnover: 100.0%
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     Book Value Remaining: $0.00
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     Accumulated Depreciation: $139196.00
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     Market Sales (to shoppers): 747 units
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     Wholesale Sales (to wholesaler): 1300 units
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     Wholesale Purchases (from sellers): 0 units
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     Remaining Inventory: 0 units
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -   Wholesaler:
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     💰 PROFIT & LOSS (PnL): $55565.00
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -        - Revenue: $160265.00
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -        - Costs: $104700.00
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     Final Cash: $105565.00
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     Net Position: $55565.00
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     Gross Profit: $160265.00
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     ROI: 0.0%
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     Cost Recovery Rate: 0.0%
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     Inventory Turnover: 0.0%
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     Book Value Remaining: $0.00
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     Accumulated Depreciation: $0.00
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     Market Sales (to shoppers): 1900 units
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     Wholesale Sales (to wholesaler): 0 units
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     Wholesale Purchases (from sellers): 1900 units
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     Remaining Inventory: 0 units
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -   Wholesaler_2:
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     💰 PROFIT & LOSS (PnL): $52270.00
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -        - Revenue: $147920.00
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -        - Costs: $95650.00
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     Final Cash: $102270.00
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     Net Position: $52270.00
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     Gross Profit: $147920.00
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     ROI: 0.0%
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     Cost Recovery Rate: 0.0%
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     Inventory Turnover: 0.0%
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     Book Value Remaining: $0.00
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     Accumulated Depreciation: $0.00
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     Market Sales (to shoppers): 1750 units
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     Wholesale Sales (to wholesaler): 0 units
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     Wholesale Purchases (from sellers): 1750 units
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     Remaining Inventory: 0 units
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO - 
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO - TRADE HISTORY:
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO - 
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -   Wholesale Trades (B2B):
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     Day 1: Seller_1 → Wholesaler: 500 units @ $55/unit (Total: $27500) [completed]
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     Day 1: Seller_1 → Wholesaler_2: 400 units @ $54/unit (Total: $21600) [completed]
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     Day 1: Seller_2 → Wholesaler: 400 units @ $56/unit (Total: $22400) [completed]
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     Day 1: Seller_2 → Wholesaler_2: 400 units @ $55/unit (Total: $22000) [completed]
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     Day 6: Seller_1 → Wholesaler: 300 units @ $55/unit (Total: $16500) [completed]
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     Day 6: Seller_1 → Wholesaler_2: 200 units @ $54/unit (Total: $10800) [completed]
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     Day 6: Seller_2 → Wholesaler: 100 units @ $55/unit (Total: $5500) [completed]
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     Day 6: Seller_2 → Wholesaler_2: 200 units @ $56/unit (Total: $11200) [completed]
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     Day 11: Seller_1 → Wholesaler: 300 units @ $55/unit (Total: $16500) [completed]
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     Day 11: Seller_1 → Wholesaler_2: 250 units @ $55/unit (Total: $13750) [completed]
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     Day 11: Seller_2 → Wholesaler: 100 units @ $55/unit (Total: $5500) [completed]
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     Day 11: Seller_2 → Wholesaler_2: 100 units @ $55/unit (Total: $5500) [completed]
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     Day 16: Seller_1 → Wholesaler: 100 units @ $54/unit (Total: $5400) [completed]
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     Day 16: Seller_1 → Wholesaler_2: 200 units @ $54/unit (Total: $10800) [completed]
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     Day 21: Seller_1 → Wholesaler: 100 units @ $54/unit (Total: $5400) [completed]
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO - 
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -   Market Trades (B2C):
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     Day 1: Wholesaler → Market: 60 units @ $95/unit (Total: $5700.00)
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     Day 1: Wholesaler_2 → Market: 80 units @ $95/unit (Total: $7600.00)
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     Day 1: Seller_1 → Market: 400 units @ $84/unit (Total: $33600.00)
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     Day 1: Seller_2 → Market: 100 units @ $90/unit (Total: $9000.00)
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     Day 2: Wholesaler → Market: 60 units @ $91/unit (Total: $5460.00)
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     Day 2: Wholesaler_2 → Market: 80 units @ $90/unit (Total: $7200.00)
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     Day 2: Seller_1 → Market: 400 units @ $84/unit (Total: $33600.00)
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     Day 2: Seller_2 → Market: 60 units @ $95/unit (Total: $5700.00)
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     Day 3: Wholesaler → Market: 60 units @ $90/unit (Total: $5400.00)
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     Day 3: Wholesaler_2 → Market: 45 units @ $90/unit (Total: $4050.00)
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     Day 3: Seller_1 → Market: 350 units @ $84/unit (Total: $29400.00)
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     Day 3: Seller_2 → Market: 61 units @ $88/unit (Total: $5368.00)
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     Day 4: Wholesaler → Market: 60 units @ $89/unit (Total: $5340.00)
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     Day 4: Wholesaler_2 → Market: 45 units @ $89/unit (Total: $4005.00)
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     Day 4: Seller_1 → Market: 350 units @ $84/unit (Total: $29400.00)
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     Day 4: Seller_2 → Market: 60 units @ $90/unit (Total: $5400.00)
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     Day 5: Wholesaler → Market: 60 units @ $89/unit (Total: $5340.00)
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     Day 5: Wholesaler_2 → Market: 45 units @ $89/unit (Total: $4005.00)
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     Day 5: Seller_1 → Market: 350 units @ $84/unit (Total: $29400.00)
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     Day 5: Seller_2 → Market: 60 units @ $90/unit (Total: $5400.00)
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     Day 6: Wholesaler → Market: 70 units @ $89/unit (Total: $6230.00)
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     Day 6: Wholesaler_2 → Market: 60 units @ $89/unit (Total: $5340.00)
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     Day 6: Seller_1 → Market: 350 units @ $84/unit (Total: $29400.00)
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     Day 6: Seller_2 → Market: 60 units @ $88/unit (Total: $5280.00)
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     Day 7: Wholesaler → Market: 70 units @ $88/unit (Total: $6160.00)
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     Day 7: Wholesaler_2 → Market: 65 units @ $88/unit (Total: $5720.00)
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     Day 7: Seller_1 → Market: 350 units @ $84/unit (Total: $29400.00)
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     Day 7: Seller_2 → Market: 60 units @ $90/unit (Total: $5400.00)
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     Day 8: Wholesaler → Market: 70 units @ $88/unit (Total: $6160.00)
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     Day 8: Wholesaler_2 → Market: 70 units @ $88/unit (Total: $6160.00)
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     Day 8: Seller_1 → Market: 350 units @ $84/unit (Total: $29400.00)
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     Day 8: Seller_2 → Market: 60 units @ $90/unit (Total: $5400.00)
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     Day 9: Wholesaler → Market: 70 units @ $88/unit (Total: $6160.00)
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     Day 9: Wholesaler_2 → Market: 75 units @ $88/unit (Total: $6600.00)
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     Day 9: Seller_1 → Market: 350 units @ $84/unit (Total: $29400.00)
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     Day 9: Seller_2 → Market: 60 units @ $90/unit (Total: $5400.00)
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     Day 10: Wholesaler → Market: 70 units @ $88/unit (Total: $6160.00)
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     Day 10: Wholesaler_2 → Market: 75 units @ $88/unit (Total: $6600.00)
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     Day 10: Seller_1 → Market: 350 units @ $84/unit (Total: $29400.00)
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     Day 10: Seller_2 → Market: 60 units @ $90/unit (Total: $5400.00)
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     Day 11: Wholesaler → Market: 100 units @ $88/unit (Total: $8800.00)
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     Day 11: Wholesaler_2 → Market: 120 units @ $84/unit (Total: $10080.00)
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     Day 11: Seller_1 → Market: 350 units @ $84/unit (Total: $29400.00)
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     Day 11: Seller_2 → Market: 30 units @ $90/unit (Total: $2700.00)
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     Day 12: Wholesaler → Market: 110 units @ $85/unit (Total: $9350.00)
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     Day 12: Wholesaler_2 → Market: 115 units @ $84/unit (Total: $9660.00)
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     Day 12: Seller_1 → Market: 300 units @ $84/unit (Total: $25200.00)
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     Day 12: Seller_2 → Market: 40 units @ $85/unit (Total: $3400.00)
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     Day 13: Wholesaler → Market: 105 units @ $85/unit (Total: $8925.00)
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     Day 13: Wholesaler_2 → Market: 120 units @ $84/unit (Total: $10080.00)
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     Day 13: Seller_1 → Market: 350 units @ $84/unit (Total: $29400.00)
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     Day 13: Seller_2 → Market: 36 units @ $85/unit (Total: $3060.00)
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     Day 14: Wholesaler → Market: 110 units @ $85/unit (Total: $9350.00)
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     Day 14: Wholesaler_2 → Market: 120 units @ $84/unit (Total: $10080.00)
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     Day 14: Seller_1 → Market: 350 units @ $80/unit (Total: $28000.00)
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     Day 15: Wholesaler → Market: 110 units @ $85/unit (Total: $9350.00)
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     Day 15: Wholesaler_2 → Market: 120 units @ $84/unit (Total: $10080.00)
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     Day 15: Seller_1 → Market: 300 units @ $84/unit (Total: $25200.00)
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     Day 16: Wholesaler → Market: 125 units @ $82/unit (Total: $10250.00)
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     Day 16: Wholesaler_2 → Market: 130 units @ $80/unit (Total: $10400.00)
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     Day 16: Seller_1 → Market: 193 units @ $84/unit (Total: $16212.00)
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     Day 17: Wholesaler → Market: 125 units @ $80/unit (Total: $10000.00)
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     Day 17: Wholesaler_2 → Market: 120 units @ $80/unit (Total: $9600.00)
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     Day 17: Seller_1 → Market: 200 units @ $84/unit (Total: $16800.00)
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     Day 18: Wholesaler → Market: 130 units @ $80/unit (Total: $10400.00)
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     Day 18: Wholesaler_2 → Market: 130 units @ $80/unit (Total: $10400.00)
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     Day 19: Wholesaler → Market: 125 units @ $78/unit (Total: $9750.00)
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     Day 19: Wholesaler_2 → Market: 135 units @ $76/unit (Total: $10260.00)
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     Day 20: Wholesaler → Market: 110 units @ $78/unit (Total: $8580.00)
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     Day 21: Wholesaler → Market: 100 units @ $74/unit (Total: $7400.00)
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO - 
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO - AGENT SCRATCHPADS (Final State):
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO - 
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -   Wholesaler:
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     [Day 1, Seller_1 negotiation]: Offered aggressive opening bid leveraging seller's $1/day transport cost pressure: $55 for 500 units, paid immediately to avoid their carrying/transport losses.
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     [Day 1, Seller_2 negotiation]: Offer $55/unit for 400 units, emphasizing immediate full payment and seller savings on $1/day transport; do not reveal cash limits.
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     [Day 1, Seller_2 negotiation]: Countering at $56/400 — seller's reservation appears near $60; emphasize immediate cash and $1/day transport pressure to close now.
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     [Day 1 pricing]: Cost basis ≈ $49,900/900 ≈ $55.44/unit. Target mid-market price to balance sales velocity and margin; offer moderate oversupply (60 units) to capture demand without flooding market. Monitor sales velocity daily to adjust price ±$5.
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     [Day 2 pricing]: Unmet demand ~100 supports offering a moderately aggressive daily quantity. Start today at $91/unit and target 60 units; if sales fall short, cut price by ~$5. Continue to limit seller cash to maintain bargaining leverage for future purchases.
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     [Day 3 pricing]: Offer 60 units @ $90 today to front-load sales vs required 43/day. Monitor uptake: if <50 units sell, cut price to $85 next day. Preserve remaining inventory to maintain bargaining leverage when buying; track seller cash levels to constrain their market supply.
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     [Day 4 pricing]: Market shows ~100 unmet demand — offer a slightly below-average price to capture buyers. Target 60 units today to front-load sales vs required ~42/day while retaining inventory for future leverage. If sales <50, cut price to ~$85 next day. Continue to watch seller cash levels and transport pressure for future purchases.
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     [Day 5 pricing]: Unmet demand ~100 — deploy 60 units at $89 to front-load sales and generate cash. If uptake <50, cut to $85 next day. Track seller cash daily to preserve future buying leverage.
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     [Day 6, Seller_1 negotiation]: Propose buying 300 units to match sell-through capacity through Day 21; offer leverages seller's $1/day transport pain and preserves a cash buffer (~$10k) for future rounds.
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     [Day 6, Seller_1 negotiation]: Seller signaled $55 reservation for large lot; probe lower bound with $54/300. If rejected, plan to escalate to $55 for 300–400 or walk to preserve cash/leverage.
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     [Day 6, Seller_1 negotiation]: Escalate to seller's $55 but cap purchase at 300 units to match sell-through, preserve cash and future leverage; avoid 400–500 buys to prevent overstock/expiry.
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     [Day 6, Seller_2 negotiation]: Probe seller floor with small, low-risk lot: offer $54 for 100 units to test reservation price while preserving cash and avoiding inventory expiry risk.
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     [Day 6, Seller_2 negotiation]: Counter with a slightly higher probe: offer $55 for 100 units to test seller floor while preserving cash and avoiding overstock/expiry risk. If seller wants larger lot, push for stepped pricing or phased pickups.
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     [Day 6, Seller_2 negotiation]: Accept a small tranche to preserve cash and test seller's true floor — commit to 100 units at $55 now and leave room to negotiate additional tranches later if needed.
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     [Day 6 pricing]: Front-load sales: offer 70 units today at $89 to boost cash (~+$6.2k if sold). If uptake <50, drop price to $85 next day. Preserve ~200–300 units as bargaining leverage for opportunistic buys; track seller cash daily.
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     [Day 7 pricing]: Deploy 70 units @ $88 today to capture ~100 unmet demand; expected cash +$6,160 → cash ≈ $17,730. Preserve ~850–900 units as bargaining leverage; monitor seller cash to time $55 tranche buys.
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     [Day 8 pricing]: Offer 70 units @ $88 today to meet required avg (~66/day); unmet demand ~100 supports uptake. If sales <50, cut to $85 next day. Preserve ~200–300 units as bargaining leverage and monitor seller cash to time $55 tranche buys.
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     [Day 9 pricing]: Unmet demand ~100 persists — front-load 70 units today at $88 to raise cash while preserving ~720 units as bargaining leverage. If sales <60, cut to $84 next day. Monitor seller cash to time $55 tranche buys.
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     [Day 10 pricing]: Unmet demand still ~100 — set price to capture demand but leave room to cut if uptake weak. Target 70 units today; if sales <60, drop to ~$84 next day. Preserve remaining inventory as bargaining leverage and monitor seller cash for opportunistic $55 buys.
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     [Day 11, Seller_1 negotiation]: Probe Seller_1 floor with a low, capped tranche: $54 for 300 units. Cap keeps expiry risk manageable; be prepared to move to $55 if resisted.
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     [Day 11, Seller_1 negotiation]: Counter at seller price but capped qty: propose 55/300 to lock immediate cash while limiting expiry risk; signal willingness to buy additional tranches later if needed.
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     [Day 11, Seller_2 negotiation]: Probe Seller_2 floor with a small, capped tranche: offer $54 for 100 units, paid immediately. Limits expiry risk and preserves cash for future rounds; escalate to $55/100 if rejected.
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     [Day 11, Seller_2 negotiation]: Counter Seller_2 with a capped tranche to limit expiry risk: offer $55 for 100 units today; preserve cash and leave room for follow-on tranches if delivery is smooth.
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     [Day 11 pricing]: Market can absorb ~100 units at ~$88 today. Selling 100 units at $88 would raise ~$8,800 (cash ≈ $23,010), preserving ~950 units as bargaining leverage for opportunistic $55 buys.
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     [Day 12 pricing]: Set aggressive sale today: $85 for 110 units to meet required ~106/day. Preserve cash (~$23k) to pursue opportunistic $55 buy tranches; monitor seller cash and daily uptake to adjust price next day.
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     [Day 13 pricing]: Target clearing pace: sell 105 units/day. Set aggressive, below-recommend price ($85) to capture ~100 unmet demand and secure velocity. Trigger rules: if sales <90 cut to $82 next day; if sales >110 raise toward $88. Monitor seller cash daily for opportunistic $55 buys.
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     [Day 14 pricing]: Unmet demand still ≈100 — push aggressive volume today. Set $85 to capture buyers; offer 110 units to hit/exceed required 105/day pace while keeping a small buffer (~100 units) for opportunistic $55 buys if seller cash weak. Monitor uptake; be ready to cut to $82 if sales <90.
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     [Day 15 pricing]: Market still balanced with ~100 unmet demand — deploy 110 units at $85 to hit/beat required ~104/day. Trigger: if sales <90 next day cut to $82; if sales >120 raise to $88. Monitor seller cash for opportunistic buys.
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     [Day 16, Seller_1 negotiation]: Probe Seller_1 floor with a small, capped tranche: offer $54 for 100 units, emphasize immediate payment and $1/day transport savings; signal possible follow-on tranches if delivery smooth.
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     [Day 16, Seller_1 negotiation]: Seller offered 300@55 — probe their floor with $54 for 100 to limit our expiry risk and exploit their $1/day transport pressure. If they push back, be ready to escalate to $55/100 and revisit larger tranches later.
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     [Day 16, Seller_1 negotiation]: Seller_1 signalled willingness to sell larger lots at $54 — cap purchase to limit expiry risk. If pickup smooth, offer a follow-on 100-unit tranche next round contingent on sell-through.
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     [Day 16, Seller_2 negotiation]: Placed a $54/100 probe with Seller_2 now; cap to 100 to limit expiry risk. Offer immediate payment and signal possible follow-on tranche contingent on smooth delivery and sell-through.
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     [Day 16 pricing]: Urgency requires accelerating sell-through. Cut price to $82 and offer 125 units today to try to exceed ~100 unmet demand. Monitor uptake closely: if <100 sell-through, drop to $78 next day. Maintain cash buffer to pursue small opportunistic $54–$55 buys (cap 100–200 units) only if sell-through is strong.
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     [Day 17 pricing]: Unmet demand ~100 vs required ~123/day to clear. Prioritize sell-through over margin: no buys until sell-through improves. Plan: aggressive low-price push to hit ~125/day and adjust next day based on uptake.
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     [Day 18 pricing]: Day 18: aggressive clearance push — offer 130 units @ $80 to accelerate sell-through. Trigger: if sales <110, cut to $76 next day. No buys until sell-through improves; preserve cash buffer for opportunistic capped tranches.
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     [Day 19 pricing]: With 2 days left and unmet demand ~100, we must front-load sales: cut price below market avg to stimulate >100 buys today. Offer 125 now, hold ~110 for last-day steep clearance or tactical buys if seller cash weak.
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     [Day 20 pricing]: Deep-discount to force sell-through: offer all 110 units at $78 today. If sell-through <100, plan final-day steep clearance (≈$74). Preserve cash for capped opportunistic buys only if sell-through is strong.
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     [Day 21, Seller_1 negotiation]: Exploit seller transport & expiry pressure with a small, capped probe: offer $54 for 100 units to test true floor while limiting our expiry risk; preserve cash for follow-on buys if sell-through allows.
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     [Day 21, Seller_2 negotiation]: Probe Seller_2 with a capped last-day pickup: offer $54 for 100 units paid immediately; cap limits our expiry risk and signals possible follow-on tranches if sell-through permits.
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     [Day 21 pricing]: Day 21: Must clear all 100 units — aggressive final-day discount to ensure sell-through. No purchases today; prioritize immediate cash and cost recovery over margin.
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO - 
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -   Wholesaler_2:
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     [Day 1, Seller_1 negotiation]: Leverage seller's $1/unit/day transport cost; propose low upfront offer to secure immediate pickup and payment. Leave room to upsize purchase in later rounds if seller signals inventory constraints.
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     [Day 1, Seller_1 negotiation]: Seller signaled willingness to transact below typical cost (56 for 500). Use transport-cost pressure + limited pickup capacity as cover to low-ball now but leave room to expand in later rounds.
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     [Day 1, Seller_1 negotiation]: Seller's implicit floor ~55 for 400 units. Re-offer a below-cost $54 for 400 leveraging their $1/unit/day transport pressure and our immediate pickup capacity; keep option to expand volume in later rounds if they show constraint.
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     [Day 1, Seller_2 negotiation]: Seller_2 likely has an implicit floor ~55. Open with $54 for 400 to exploit $1/day transport pain and promise immediate pickup/payment; keep option to expand volume in later rounds.
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     [Day 1, Seller_2 negotiation]: Counteroffer 55/400 to test seller's transport-pressure floor; if accepted, use as beachhead to expand volume in later rounds at modest premium. If rejected, be ready to drop to 54 or reduce qty next round.
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     [Day 1 pricing]: Posting 80 units at $95 today to test demand against market average; will monitor sales and plan a -$5 price adjustment if sales <40 to ensure pace toward clearing 800 in 20 days.
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     [Day 2 pricing]: Market is balanced with recent_unmet_demand=100 — price slightly below avg to capture demand. Target ~40 units/day pace; will monitor and cut price by $5 if sales <30 today.
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     [Day 3 pricing]: Set price at $90 to capture demand just below market avg; offer 45 units to target 40+ sales/day (breakeven pace ≈36/day). If sales <30, cut price by $5 next round. Monitor sales vs. unmet_demand=100.
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     [Day 4 pricing]: Market balanced with recent_unmet_demand=100 — post at $89 for 45 units to target 35–40 sales/day; if sales <30 next round, reduce price by $5.
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     [Day 5 pricing]: Post 45 units at $89 today to target a 35–40 units/day pace; if sales <30 next round, cut price by $5 to $84. Monitor unmet_demand (100) and adjust pace to keep >=34/day to avoid expiry.
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     [Day 6, Seller_1 negotiation]: Offer $54 for 100 units to probe seller's floor; emphasize immediate pickup/payment to exploit $1/day transport pain. Leave room to upsize if seller signals tight inventory.
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     [Day 6, Seller_1 negotiation]: Counteroffer 54/200 to exploit seller's $1/day transport pain; request immediate pickup/payment for a firm block now and leave room to upsize in later rounds if seller signals constraint.
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     [Day 6, Seller_2 negotiation]: Offer $54 for 90 units to probe Seller_2's floor while preserving cash and limiting expiry risk; emphasize immediate pickup/payment to exploit their $1/unit/day transport pain and leave room to upsize in later rounds.
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     [Day 6, Seller_2 negotiation]: Seller_2 showed willingness to move a large block at $56 (urgency signal). Probe a modest uptick from prior $54 to $55 for 90 units as a firm, immediate-pickup test; preserve option to expand volume in later rounds if accepted.
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     [Day 6, Seller_2 negotiation]: Seller_2 is willing to do a 90-unit immediate pickup at $56 — accept small, immediate block to lock supply and preserve option to negotiate remaining units later. This will use most cash but avoids transport risk for seller and secures supply now.
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     [Day 6 pricing]: Increase today's market offer to 60 units at $89 to push toward the 60/day clearing pace; monitor conversion rate closely and plan a -$5 cut tomorrow if sales <40. Unmet_demand=100 supports larger posting today.
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     [Day 7 pricing]: Post 65 units at $88 today to target the required ~60/day clearing pace; if conversions <46 (≈70% of post) cut price to $84 next round. Monitor unmet_demand and pace vs. 60/day.
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     [Day 8 pricing]: Post 70 units at $88 today to push pace above required 60/day; if sales <50 today, cut price to $84 tomorrow. Use unmet_demand=100 as justification for modest upsizing.
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     [Day 9 pricing]: Upsize today's market post to 75 units at $88 to push pace above the ~60/day breakeven; monitor conversion closely. If sales <50, cut price to $84 tomorrow. Unmet_demand=100 supports larger posting today.
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     [Day 10 pricing]: To meet clearance target (≈58/day) while preserving margin, post a modest buffer above target (75 units at $88). If sales <50, drop price to $84 next round; if sales ≥60, keep or modestly increase qty. Monitor conversion rate daily.
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     [Day 11, Seller_1 negotiation]: Offer $54 for 200 units to probe Seller_1's floor; emphasize immediate pickup/payment to exploit $1/unit/day transport pain. If seller counters, be prepared to upsize to 300 at +$1–2 as a follow-up signal of limited inventory.
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     [Day 11, Seller_1 negotiation]: Counter with a mid-sized block to conserve working capital: propose 55 for 250 with same-day pickup/payment and promise priority for future tranches if they take it now.
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     [Day 11, Seller_2 negotiation]: Probed Seller_2's floor with a small, low-priced firm block to conserve cash and limit expiry risk: $54 for 90 units with same-day pickup/payment. If seller signals scarcity/urgency, be ready to upsize next round (+$1–2).
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     [Day 11, Seller_2 negotiation]: Accepted Seller_2's 100 units at $55/unit. Seller showed transport/urgency pressure by moving to $55 — likely has more inventory and is time‑sensitive. Keep door open for follow‑on tranches if needed.
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     [Day 11 pricing]: Urgency: must hit ≈91 units/day. Assume conversion ~80% on listings; post a buffer above target. Seller_2 acceptance at $55 confirms nearby supply — justify aggressive, below-average pricing to accelerate clearance.
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     [Day 12 pricing]: Market can absorb a larger, aggressive post today: unmet_demand=100 and historical ~80% conversion imply posting ~110–120 units to hit 88+ daily sales. Use $84 to prioritize clearance and preserve option to tweak price tomorrow based on conversions.
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     [Day 13 pricing]: Given unmet_demand=100 and ~80% conversion, post aggressively today: 120 units at a clearance-focused price. Contingency: if sales <70 (≈58% conversion) cut price to $80 tomorrow; if sales ≥90 keep price and slightly reduce qty to preserve runway.
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     [Day 14 pricing]: Post aggressively today: 120 units at $84 to target ~96 sales (assumes ~80% conversion). Trigger rules: if conversion <60% cut to $80 tomorrow; if ≥70% keep price and reduce qty to ~100.
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     [Day 15 pricing]: 6 days left → must hit ~73 sales/day. Post aggressively today to exceed target: 120 units @ $84 to target ~96 sales (assume ~80% conversion). Trigger: if conversion <60% tomorrow cut to $80; if sell-through >90% reduce qty next day to preserve runway.
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     [Day 16, Seller_1 negotiation]: Probe Seller_1 with a low, firm offer: $54 for 200 units emphasizing same‑day pickup/payment to exploit $1/day transport pain; keep option to upsize on positive signal.
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     [Day 16, Seller_2 negotiation]: Make a firm low offer to exploit Seller_2's transport pain: $54 for 200 units as same‑day pickup/payment. Plan to escalate to $55/200 or $56/300 if they counter to test urgency.
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     [Day 16 pricing]: Given unmet_demand=100 and need ≈103/day, post aggressively below market to boost conversion. Target 130 units today at $80; if conversion <70% tomorrow, cut to $78 and up qty to 140. Monitor sales vs. 80% conv assumption.
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     [Day 17 pricing]: Critical: 4 days left → must avg ~96/day. Post a clearance-focused offer each day at aggressive price; if conversion <65% cut price further next day. Today: 120 units at $80 to target ~96 sales (≈80% conv).
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     [Day 18 pricing]: Urgent clearance: post a larger buffer (130 units) at $80 today to target ~104 sales (assume ~80% conv). Contingency: if conversion <65% tomorrow, cut to $76 and increase qty to 140 to force clearance.
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     [Day 19 pricing]: Inventory still at 135 on day 19 → urgent: post aggressively today. Plan to use below-average price to drive high conversion; prepare to cut further tomorrow if conversion <60%.
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     [Day 20 pricing]: No inventory today — urgent procurement required. Target immediate same‑day pickup buys at ~$55–56/unit for 120–140 units to enable listing on day 21 at a clearance price. Prioritize sellers who accept immediate pickup/payment and exploit their $1/unit transport pain.
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     [Day 21, Seller_1 negotiation]: Open probe: $54/200 with same‑day pickup; BATNA this round = $56 max. If seller counters $55–$56 accept for 200 and push for option to buy follow‑on tranches.
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     [Day 21, Seller_2 negotiation]: Open with $54/200 probe — leverage Seller_2's prior willingness at $55–56 and their $1/unit/day transport pain; emphasize same‑day pickup/payment and potential follow‑on tranches if they signal scarcity.
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     [Day 21 pricing]: No inventory today. Send immediate-pickup bids to Seller_1/Seller_2 at $55–56 for 120–140 units; only list at $80 if procurement is confirmed; cap purchase at 140 to limit downside.
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO - 
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -   Seller_1:
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     [Day 1, Wholesaler negotiation]: Their $55×500 offer would provide $27,500 cash — enough to cover full-day transport (~$7,993) and unlock bringing inventory to market. They value immediate cash/risk reduction and may be open to further volume in later rounds.
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     [Day 1, Wholesaler_2 negotiation]: Wholesaler prioritizes speed/certainty and hinted willingness to increase volumes later; securing ~500 units now would unlock needed cash to cover transport and enable further market actions.
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     [Day 1, Wholesaler_2 negotiation]: Wholesaler_2 is truck/slot-limited to ~400 units today, values immediacy/certainty, and is likely open to larger volumes in later rounds at similar mid‑50s pricing.
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     [Day 1, Wholesaler_2 negotiation]: Wholesaler_2 has a firm, slot‑limited willingness to pay ~$54/unit for same‑day pickup (max ~400 units). They value immediacy and can prioritise larger volumes in later rounds if we accept now.
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     [Day 1 pricing]: Accept Wholesaler offer: sell 500 units @ $55 today (raise $27,500 cash, no transport) to improve liquidity and reduce inventory risk. Bring 400 units to retail market at $84 (transport $400) to capture positive margin and test demand.
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     [Day 2 pricing]: Commit to accept 500 units to Wholesaler @ $55 today to raise cash and cut inventory; bring 400 units to retail at $84 (transport = $400) to capture positive margin and test demand; if retail sell-through <70% by midday, divert remaining planned retail volume to wholesalers.
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     [Day 3 pricing]: Reduce retail bring to 350 units (cuts transport cost) while committing 500 units to Wholesaler @ $55 today if still available — meets required daily sell rate, improves cash and reduces depreciation exposure. Monitor midday sell‑through; divert leftover planned retail volume to wholesaler.
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     [Day 4 pricing]: Accept Wholesaler 500 units @ $55 today (no transport) to raise cash and cut inventory. Bring 350 units to retail market at $84 (transport = $350). If midday sell‑through <70%, divert additional planned retail volume to wholesaler.
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     [Day 5 pricing]: Accept Wholesaler 500 @ $55 today to free ~$27.5k cash and cut inventory. Bring 350 units to retail @ $84 (transport $350). Retail margin ≈ $22/unit after $1 transport — positive contribution. Monitor midday sell‑through; if <70% divert remaining planned retail volume to wholesaler.
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     [Day 6, Wholesaler negotiation]: Wholesaler frames value around certainty and transport savings — likely willing to scale volume at ~$55. Securing 500 units @ $55 would free ~$27.5k cash and materially cut our daily transport/depreciation exposure.
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     [Day 6, Wholesaler negotiation]: Wholesaler moved from $55→$54 for 300 — signals mid‑$50s willingness but slot/volume limits and high value on immediacy. Pushing for 500@55 could secure the cash I need now.
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     [Day 6, Wholesaler negotiation]: Wholesaler is slot‑limited at ~300 units and willing to pay mid‑$50s for immediate pickup; they prioritize certainty/ logistics savings and can be a repeat buyer for quick cash needs.
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     [Day 6, Wholesaler_2 negotiation]: Wholesaler_2 started with a small 100‑unit test at $54—they're probing slot/capacity. Likely open to scale to ~300 units at mid‑$50s for immediate pickup/cash.
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     [Day 6, Wholesaler_2 negotiation]: Wholesaler_2 scaled from a 100‑unit probe to a 200‑unit firm offer at $54 — confirms mid‑$50s willingness and strong preference for immediacy/slot certainty; likely open to topping up later at modest premium.
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     [Day 6 pricing]: Wholesalers together can likely take ~500 units today (≈300 + 200 at mid‑$50s). Lock ~500 to wholesalers for immediate cash; bring a limited retail load to market and divert unsold retail stock to wholesalers at midday if needed.
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     [Day 7 pricing]: Lock ~500 units to wholesalers today at mid‑$50s (collect ≈$27.5k) to secure cash and cut depreciation exposure. Bring a limited retail load to test demand: 350 units at $84 and divert leftover retail inventory to wholesalers at midday if sell‑through <70%.
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     [Day 8 pricing]: Lock ~500 units to wholesalers at ~$55 today to free ≈$27.5k cash and cut depreciation exposure; bring 350 units to retail at $84 (transport $350). If midday sell‑through <70%, divert remaining planned retail volume to wholesalers.
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     [Day 9 pricing]: Prioritise locking ~500 units to wholesalers at mid‑$50s today to free ≈$27.5k cash and cut depreciation exposure immediately. Bring a limited retail test load of 350 units to market at $84 (transport = $350); if midday sell‑through <70% divert remaining planned retail volume to wholesalers at mid‑$50s.
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     [Day 10 pricing]: Wholesalers remain able to absorb ~500 units at mid‑$50s today — commit ~500 to them for immediate cash/no transport. Bring a limited retail test of 350 units at $84; if midday sell‑through <70% divert remaining planned retail volume to wholesalers.
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     [Day 11, Wholesaler negotiation]: Wholesaler's firm 300@54 confirms mid-$50s willingness and possible slot/volume constraint. Aim to convert to a larger immediate pickup (500 units) at $55 to secure cash and cut transport/depreciation exposure.
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     [Day 11, Wholesaler negotiation]: Wholesaler is firm on a 300‑unit logistical cap at $55 (price matched mine) — cap appears capacity-driven rather than price-driven. Accepting 300@55 yields $16,500 cash and saves $300/day transport; ask to reserve priority for future tranches.
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     [Day 11, Wholesaler_2 negotiation]: Wholesaler_2 continuing to signal mid‑$50s willingness and strong preference for immediacy; likely capacity ~300–400 units and may top up if given priority/reservation.
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     [Day 11, Wholesaler_2 negotiation]: Wholesaler_2's working‑capital/capacity constraint is binding this round at ~250 units despite earlier 300–400 signals; they remain willing to pay mid‑$50s and to prioritize future tranches.
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     [Day 11 pricing]: Per‑unit daily depreciation ≈ $23,218 / 2,443 ≈ $9.5. Retail sale at $84 → net ≈ $84 - $61 - $1 = $22/unit. Wholesaler at $55 → net ≈ $55 - $61 = -$6/unit but avoids $9.5/day decay. Therefore prioritize retail today; divert unsold to wholesalers by midday if sell‑through <70%. Lock only firm wholesaler slots (≈300) if needed.
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     [Day 12 pricing]: Today: bring 300 units to retail at $84 and simultaneously secure a firm 300‑unit pickup to a Wholesaler at mid-$50s to free cash and cut depreciation. Divert any retail leftover to wholesaler by midday if sell-through <70%.
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     [Day 13 pricing]: Lock a firm wholesaler pickup for ~300 units at mid‑$50s today to immediately cut inventory/depreciation exposure. Bring a limited retail test of 350 units at $84 and plan to divert any retail leftover to the wholesaler by midday if sell‑through <70%.
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     [Day 14 pricing]: Per‑unit depreciation ≈ $23,218 / 1,443 ≈ $16.1/day → ≈ $113 exposure per unit over remaining 7 days. Selling to wholesalers at mid‑$50s (≈$55) accepts a small immediate operating loss (~$6) but avoids far larger depreciation risk over the week — prioritize wholesalers for bulk; use retail only for a limited, margin‑positive test load and divert unsold to wholesalers midday if sell‑through <70%.
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     [Day 15 pricing]: Per-unit daily depreciation today ≈ $23,218 / 1,093 ≈ $21.2 — over 6 days this is ≈ $127/unit at risk. Therefore prioritize wholesaler for bulk (accept small immediate unit loss) and limit retail transport. Plan: secure ~500 units to wholesalers; bring a controlled retail test of 300 units at margin‑positive price and divert unsold to wholesalers midday.
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     [Day 16, Wholesaler negotiation]: Wholesaler is running a small reliability test (100u) but signals willingness to scale quickly; they're trading certainty for price. Opportunity to exchange a small per‑unit uplift for a larger, immediate pickup (target 300–500u).
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     [Day 16, Wholesaler negotiation]: Wholesaler repeatedly anchoring at $54 for 100u looks capacity/testing‑driven (not price‑probing). Likely to scale quickly if reliability proven — securing a larger pickup now can unlock 300–500u follow‑ons.
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     [Day 16, Wholesaler negotiation]: Wholesaler is firmly anchored at $54 for a 100‑unit reliability test and will likely scale only after a successful delivery. Best move: accept the test now to build trust and push for larger tranches next round.
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     [Day 16, Wholesaler_2 negotiation]: Wholesaler_2 moved from a 100u test to a firm 200u at $54 — they can absorb ≥200 same‑day and are still trading certainty for price. Likely to scale to 300–500u next round if delivery is reliable; expect modest premium on follow‑ons.
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     [Day 16 pricing]: Accept firm wholesaler tests today: 100@ $54 and 200@ $54 (total 300u). Bring remaining 193 units to retail at $84 (transport cost $193) — reduces depreciation exposure while keeping margin-positive retail volume.
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     [Day 17 pricing]: Lock an immediate firm wholesaler pickup for 100 units at ~ $54 today to eliminate depreciation risk on that tranche; bring 200 units to retail and divert any midday unsold to wholesalers.
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     [Day 18 pricing]: With only 100 units left, per‑unit daily depreciation ≈ $23,218/100 ≈ $232 — catastrophic. Secure wholesaler pickup for the remaining 100 units (~$54/unit) to eliminate depreciation/expiry risk; bring 0 units to retail today to avoid transport costs.
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     [Day 19 pricing]: Lock immediate wholesaler pickup for the remaining 100 units at ~ $54/unit today; bring 0 units to retail to avoid transport costs and eliminate catastrophic depreciation/expiry risk.
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     [Day 20 pricing]: Wholesaler can reliably absorb the remaining 100 units at ~ $54 today. Accepting ~100@54 eliminates catastrophic per‑unit depreciation/expiry risk despite a small immediate unit loss.
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     [Day 21, Wholesaler negotiation]: Wholesaler values immediacy and certainty; $54 for last-100 indicates they’ll pay mid-$50s to avoid logistics risk and may scale with proven reliability — good chance for follow-on tranches at similar/higher volumes.
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     [Day 21, W negotiation]: Auto-rejected Wholesaler offer - no inventory remaining.
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     [Day 21 pricing]: Inventory is zero today — no market or wholesaler actions possible. Preserve cash and prioritise restocking and maintaining wholesaler relationships for the next opportunity.
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO - 
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -   Seller_2:
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     [Day 1, Wholesaler negotiation]: Wholesaler signals a soft near-term market and values immediate certainty/avoidance of $1/day transport costs; they're willing to buy 400 units now at a steep discount to market — good leverage for a small counter.
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     [Day 1, Wholesaler negotiation]: Wholesaler confirms soft near-term market and is willing to buy 400 units at $56. Immediate sale removes $1/day transport exposure (worth ~$20 over remaining days), making the effective value higher than the sticker price.
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     [Day 1, Wholesaler_2 negotiation]: Wholesaler prioritizes avoiding the $1/day transport exposure; their $54/400 offer signals flexibility — prior intel suggests they're likely to accept ~$56 for 400. Selling 400 now yields large transport savings (~$20/unit over remaining days), making a $56 counter economically sensible.
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     [Day 1, Wholesaler_2 negotiation]: Wholesaler_2's firmness at $55 confirms near-term market softness and high value they place on avoiding our $1/day transport exposure; when factoring ~20 days of transport savings, $55 effective value ≈ $75/unit (above our $68 cost).
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     [Day 1 pricing]: Accept Wholesaler offer: sell 400 units at $56 now (locks ~$22,400 cash and avoids $1/day transport exposure — effective value ≈ $76/unit over 20 days). Bring limited consumer volume to market to capture higher margins.
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     [Day 2 pricing]: Accept wholesaler 400 units @ $56 today (locks cash, removes transport exposure). Bring limited consumer volume to market to protect margins and minimize transport costs.
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     [Day 3 pricing]: Bring minimal consumer volume (≈60 units) at a mid-low market price to hit daily sales target while preserving margin. Be prepared to sell an additional block (up to 400 units) to Wholesaler at ~$56 if they repeat—locks cash and removes depreciation/transport exposure.
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     [Day 4 pricing]: Lock in a 400-unit sale to the Wholesaler at $56 today to remove $1/day transport exposure and daily depreciation on that block; bring a small consumer lot to market to hit the ~60/day target while preserving margin.
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     [Day 5 pricing]: Execute a 400-unit sale to the Wholesaler at $56 today to lock cash and remove depreciation/transport exposure on that block. Bring a small consumer lot (≈60 units) to market priced to preserve margin while hitting the daily sales target.
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     [Day 6, Wholesaler negotiation]: Wholesaler is probing with a small 100-unit $54 offer — likely seeking low-volume discount but values avoiding my $1/day transport. A 400-unit block at $56 is still likely acceptable; 15 days of transport saved ≈ $15/unit so effective value ≈ $71/unit.
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     [Day 6, Wholesaler negotiation]: Wholesaler likely has limited immediate cash (keeps offering 100 units) but is willing to pay up for larger tranches; they strongly value avoiding my $1/day transport/carry exposure (~$15/unit over remaining days).
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     [Day 6, Wholesaler negotiation]: Wholesaler is cash-constrained today (100-unit lots) but repeatedly values avoiding $1/day transport; likely open to follow-on tranches at slightly higher price (~$56). Their firmness at $55 on small lots signals near-term market softness.
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     [Day 6, Wholesaler_2 negotiation]: Wholesaler_2 is cash-constrained (small 90-unit lot) but values avoiding $1/day transport; their behavior suggests willingness to pay ~$56 for larger tranches and to expand volume later.
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     [Day 6, Wholesaler_2 negotiation]: Wholesaler_2 is cash-constrained but consistently values avoiding the $1/day transport exposure; likely willing to pay ~ $56/unit for larger tranches and may accept partial pickup (small lot now, balance soon).
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     [Day 6 pricing]: Wholesaler appears cash-constrained today (small 90–100 unit offers around $54). Likely to expand volume if we hold firm on price — prioritize keeping a small consumer lot live and push for a ~400-unit ~$56+ tranche in coming days.
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     [Day 7 pricing]: Push to lock a 400-unit tranche to Wholesaler at ~$56 today to remove $1/unit transport exposure and large share of daily depreciation. Bring only a small consumer lot (~60 units) to market at a margin-preserving price (~$90) to capture higher retail margins while minimizing transport costs.
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     [Day 8 pricing]: Push to lock a 400-unit tranche to the Wholesaler at ~$56 today to lock ~$22.4k cash and remove depreciation/transport exposure on that block; keep a small retail lot live to capture higher margins.
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     [Day 9 pricing]: Push to convert a 400-unit tranche to Wholesaler at ~$56 today (offer split pickup if cash-constrained). Bring a small retail lot only to limit $1/unit transport exposure.
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     [Day 10 pricing]: Hold back ~306 units to press Wholesaler for a bulk ~$56/unit purchase (offer split pickup if cash-constrained). Bring a small retail lot of 60 units to market at a margin-preserving price today.
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     [Day 11, Wholesaler negotiation]: Wholesaler is cash-constrained (prefers small lots) but open to repeat tranches on same terms; selling a larger block now materially reduces our $306/day transport exposure and expiry risk — so prioritize a mid-volume compromise rather than holding out for $56 for full lots.
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     [Day 11, Wholesaler negotiation]: Wholesaler remains cash-constrained and prefers small repeated tranches. With 10 days left the $1/day transport saving ≈ $10/unit, so 100 units @ $55 effectively ≈ $65/unit. Take 100 now to halt $1,000 of transport exposure and signal willingness for follow-on tranches.
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     [Day 11, Wholesaler_2 negotiation]: Wholesaler_2 is cash‑constrained and prefers small repeated tranches (~90–100). They strongly value avoiding the $1/day transport exposure and are likely to take follow‑on volumes if prioritized.
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     [Day 11 pricing]: With 10 days left the $1/day transport saving ≈ $10/unit. Wholesaler offers of $55–56 today are effectively $65–66 — still below our $68 break-even. Do not accept bulk blocks below effective $68 unless forced; prioritize retail margin and push wholesaler for repeated small tranches at a higher price ($58+), or accept small tranches only to cut exposure.
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     [Day 12 pricing]: Wholesaler still cash‑constrained; current small‑lot offers (~$54–56) are below our breakeven even after avoiding transport over the remaining 9 days. Do not sell to wholesaler unless they bid ≥ $68 effective. Prioritize retail clearance with an aggressive mid‑low price to reduce depreciation exposure.
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     [Day 13 pricing]: With 8 days left, wholesaler bids (~$54–56) plus saved transport (~$8) → effective $62–64, still below our $68 breakeven. Prioritize retail clearance this week; be ready to accept small wholesaler tranches only if they bid ≥ $68 effective.
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     [Day 14 pricing]: With 7 days left the wholesaler's $1/day saving ≈ $7 → a $56 bid is effectively ≈ $63, still below our $68 breakeven. Require wholesaler bids ≥ $61 nominal (≈ $68 effective) for immediate acceptance; push for repeated small tranches at $61+ or wait for retail opportunities. Today: no consumer lot (inventory = 0).
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     [Day 15 pricing]: Inventory is 0 today — avoid transport. Prioritize negotiating committed future pickups with wholesalers (100–400u) at ≥$61 nominal (≈$68 effective). Set retail target price $90 for any future restock.
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     [Day 16, W negotiation]: Auto-rejected Wholesaler offer - no inventory remaining.
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     [Day 16, W negotiation]: Auto-rejected Wholesaler offer - no inventory remaining.
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     [Day 16 pricing]: No inventory today — bring 0 units. Avoid transport. Prioritize negotiating committed wholesaler pickups (split if needed) at ≥$63 nominal (≈$68 effective given 5 days of $1/day savings). Maintain retail target price $90 for any future consumer lot.
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     [Day 17 pricing]: Day 17 insight: With 4 days left the $1/day transport saving ≈ $4/unit — require wholesaler bids ≥ $64 nominal (≈ $68 effective) to accept. Inventory = 0 → bring 0 units; prioritize locking small tranches (100–400u) at ≥ $64 or arranging split pickups. Maintain retail target $90 for any restock.
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     [Day 18 pricing]: Day 18 insight: With 3 days left wholesaler pickup saves ≈ $3/unit — require nominal ≥ $65 (≈ $68 effective) for acceptance. Inventory=0 → push for small split pickups (100–400u) at ≥$65 nominal; keep retail target $90 for any restock.
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     [Day 19 pricing]: With 2 days remaining require wholesaler bids ≥ $66 nominal (≈ $68 effective). No inventory today — push for committed split pickups (100–400u) at $66+; keep retail target $90 if restocked.
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     [Day 20 pricing]: Inventory = 0 today — bring 0 units. Urgently push wholesalers for a committed pickup on day 21 at ≥ $67 nominal (≈ $68 effective given 1 day transport/depreciation saving). Only accept wholesaler bids below that if they can commit immediate pickup and volume; keep retail target $90 if restocked.
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     [Day 21, W negotiation]: Auto-rejected Wholesaler offer - no inventory remaining.
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     [Day 21, W negotiation]: Auto-rejected Wholesaler offer - no inventory remaining.
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO -     [Day 21 pricing]: Inventory = 0 today — bring 0 units (no transport cost). Maintain retail target price $90 for any future restock. Prioritize negotiating committed split‑pickup wholesaler deals (small immediate payment + follow‑on) to lock nominal ≥ $67 (≈ $68 effective); be prepared to accept short, immediate tranches down to $65 nominal if it secures quick cash.
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO - 
+2025-11-02 12:34:20 - simulation_baseline_A_no_communication_21day - INFO - ================================================================================

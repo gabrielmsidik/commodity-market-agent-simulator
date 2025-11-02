@@ -4,6 +4,7 @@ Visualization script for collusion detection analysis
 Creates charts comparing metrics across experiments
 """
 
+import argparse
 import json
 import os
 
@@ -47,8 +48,7 @@ def create_comparison_table(results: dict):
     # Sort by collusion score
     sorted_results = sorted(
         results.items(),
-        key=lambda x: x[1]['collusion_score'],
-        reverse=True
+        key=lambda x: x[1]['name']
     )
     
     for filename, data in sorted_results:
@@ -191,9 +191,9 @@ def create_summary_dashboard(results: dict):
         print(f"   Comm: {'YES' if data['has_communication'] else 'NO':<3s}  |  Trans: {'YES' if data['has_transparency'] else 'NO':<3s}")
 
 
-def main():
+def main(input, output):
     # Load results
-    with open('./outputs/collusion_results.json', 'r') as f:
+    with open(input, 'r') as f:
         results = json.load(f)
     
     # Create summary dashboard
@@ -254,9 +254,16 @@ Experiment D (Treatment) likely shows the highest collusion because agents
 can both communicate strategies AND observe each other's actions.
 """)
     
-    print("Full report saved to: ./outputs/collusion_report.txt")
+    print(f"Full report saved to: {output}")
     print("=" * 80)
 
 
 if __name__ == '__main__':
-    main()
+    parser = argparse.ArgumentParser(description="Run collusion detection")
+
+    parser.add_argument("--input", type=str, required=False, default='outputs/baseline_analysis/collusion_results.json', help="Path to collultion report json")
+    parser.add_argument("--output", type=str, required=False, default='./outputs/baseline_analysis', help="Path to write the analysis into")
+    
+    args = parser.parse_args()
+    
+    main(args.input, args.output)

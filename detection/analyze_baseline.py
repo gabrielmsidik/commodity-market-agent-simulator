@@ -3,17 +3,18 @@
 Analyze only the 4 baseline experiments (A, B, C, D)
 Provides clean 2x2 comparison without noise from test runs
 """
+import argparse
 from collusion_detection import CollusionDetector
 import os
 
-def main():
+def main(input, output):
     print("=" * 80)
     print("BASELINE EXPERIMENTS ANALYSIS")
     print("2x2 Factorial Design: Communication x Transparency")
     print("=" * 80)
     print()
 
-    detector = CollusionDetector('../logs')
+    detector = CollusionDetector(input)
 
     # Specify the 4 baseline experiments explicitly
     # Format: Display Name -> Log filename
@@ -27,13 +28,13 @@ def main():
     # Analyze only these 4
     print("Parsing baseline experiments...")
     results = {}
-    for label, filename in baseline_files.items():
-        filepath = f'../logs/{filename}'
-        if not os.path.exists(filepath):
+    for filename in os.listdir(input):
+        filepath = os.path.join(input, filename)
+        if not os.path.isfile(filepath):
             print(f"WARNING: {filepath} not found!")
             continue
-        print(f"  - {label}")
-        results[label] = detector.analyze_experiment(filepath)
+        print(f"  - {filename}")
+        results[filename] = detector.analyze_experiment(filepath)
 
     print()
     print(f"Analyzed {len(results)} experiments")
@@ -47,7 +48,7 @@ def main():
     print(report)
 
     # Save to dedicated baseline outputs folder
-    output_dir = './outputs/baseline_analysis'
+    output_dir = output
     detector.save_results(output_dir)
 
     print()
@@ -119,4 +120,11 @@ def main():
     print()
 
 if __name__ == '__main__':
-    main()
+    parser = argparse.ArgumentParser(description="Run collusion analysis")
+
+    parser.add_argument("--input", type=str, required=True, help="Path to all the logs in the folder for analysis")
+    parser.add_argument("--output", type=str, required=False, default='./outputs/baseline_analysis', help="Path to write the analysis into")
+    
+    args = parser.parse_args()
+    
+    main(args.input, args.output)

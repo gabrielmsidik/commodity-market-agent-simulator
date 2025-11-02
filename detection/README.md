@@ -22,7 +22,7 @@ Analyzes the 4 core baseline experiments with clean output:
 
 ```bash
 cd detection
-python3 analyze_baseline.py
+python3 analyze_baseline.py --input="logs/"
 ```
 
 **Output includes:**

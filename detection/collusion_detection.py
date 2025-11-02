@@ -4,6 +4,7 @@ Collusion Detection Analysis for Oligopoly Simulation
 Analyzes pricing behavior across multiple experimental conditions
 """
 
+import argparse
 import re
 import os
 from collections import defaultdict
@@ -501,8 +502,7 @@ class CollusionDetector:
         # Sort by collusion score
         sorted_results = sorted(
             self.results.items(), 
-            key=lambda x: x[1]['collusion_score'], 
-            reverse=True
+            key=lambda x: x[1]['name']
         )
         
         report.append("COLLUSION SCORES (0-100, higher = more likely collusion):")
@@ -639,9 +639,9 @@ class CollusionDetector:
         print(f"Results saved to {output_dir}/")
 
 
-def main():
+def main(log_path, output_path):
     # Initialize detector
-    detector = CollusionDetector('./logs')
+    detector = CollusionDetector(log_path)
     
     # Analyze all experiments
     print("Analyzing simulation logs...")
@@ -658,11 +658,18 @@ def main():
     print(report)
     
     # Save results
-    detector.save_results('./outputs')
+    detector.save_results(output_path)
     print("\n" + "=" * 80)
     print("Analysis complete!")
     print("Detailed results saved to outputs directory")
 
 
 if __name__ == '__main__':
-    main()
+    parser = argparse.ArgumentParser(description="Run collusion detection")
+
+    parser.add_argument("--logs", type=str, required=True, help="Path to all the logs in the folder for analysis")
+    parser.add_argument("--output", type=str, required=False, default='./outputs/baseline_analysis', help="Path to write the analysis into")
+    
+    args = parser.parse_args()
+    
+    main(args.logs, args.output)
